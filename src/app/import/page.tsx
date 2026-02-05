@@ -1,8 +1,21 @@
+'use client';
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FileUpload } from "@/components/import/FileUpload";
 
 export default function ImportPage() {
+  const router = useRouter();
+
+  const handleUploadComplete = () => {
+    // Redirect to dashboard after successful upload
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -21,25 +34,11 @@ export default function ImportPage() {
       <main className="container mx-auto max-w-2xl px-6 py-8">
         <h2 className="mb-6 text-xl font-semibold">Import Apple Health Data</h2>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Export</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 py-16">
-              <p className="mb-2 text-sm text-muted-foreground">
-                Drag and drop your Apple Health export ZIP file here
-              </p>
-              <p className="text-xs text-muted-foreground">
-                or click to browse
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <FileUpload onUploadComplete={handleUploadComplete} />
 
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>How to Export</CardTitle>
+            <CardTitle>How to Export Apple Health Data</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             <ol className="list-inside list-decimal space-y-2">
