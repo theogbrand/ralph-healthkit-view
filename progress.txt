@@ -17,12 +17,6 @@
 - Verified project builds successfully and database initializes correctly
 - Committed as initial commit
 
-### Next up: Phase 3 - Analytics Engine
-- Implement fitness scoring algorithm
-- Build trend analysis and statistical calculations
-- Create analytics API route
-- Compute daily fitness scores for historical data
-
 ## Phase 2: Data Import - COMPLETED
 
 ### What was done:
@@ -52,3 +46,9 @@
 - Updated import page to use FileUpload component
 - Installed adm-zip package for ZIP file extraction
 - All type checks pass and project builds successfully
+
+### Next up: Phase 3 - Analytics Engine
+- Implement fitness scoring algorithm
+- Build trend analysis and statistical calculations
+- Create analytics API route
+- Compute daily fitness scores for historical data
