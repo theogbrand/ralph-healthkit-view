@@ -1,7 +1,7 @@
 import type { DateRange, MetricSummary } from '@/types/analytics';
-import { HEALTH_TYPE_MAP } from '@/config/metrics';
+import { HEALTH_TYPE_MAP, RUNNING_WORKOUT_TYPES, GYM_WORKOUT_TYPES } from '@/config/metrics';
 import { getDateRangeBounds, formatDateISO } from '@/lib/utils/date-helpers';
-import { getDailyAverageByType, getDailySumByType, getLatestRecordByType } from '@/lib/db/queries';
+import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getWeeklyWorkoutSummary } from '@/lib/db/queries';
 
 // Types that should use SUM aggregation (cumulative daily metrics)
 const SUM_TYPES = new Set([
@@ -90,4 +90,151 @@ export function getSparklineData(type: string, days: number): number[] {
 
   const dailyValues = getDailyValues(type, formatDateISO(start), formatDateISO(end));
   return dailyValues.map(d => d.value);
+}
+
+function computeChangePercent(values: number[]): number | null {
+  if (values.length < 2) return null;
+  const q = Math.max(1, Math.floor(values.length / 4));
+  const earlyAvg = values.slice(0, q).reduce((a, b) => a + b, 0) / q;
+  const lateAvg = values.slice(-q).reduce((a, b) => a + b, 0) / q;
+  return earlyAvg === 0 ? null : Math.round(((lateAvg - earlyAvg) / Math.abs(earlyAvg)) * 100);
+}
+
+/**
+ * For metrics where lower = improving (pace, HR), invert the trend logic
+ */
+function computeTrendInverted(values: number[]): 'improving' | 'stable' | 'declining' {
+  const raw = computeTrend(values);
+  if (raw === 'improving') return 'declining';
+  if (raw === 'declining') return 'improving';
+  return 'stable';
+}
+
+export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
+  const { start, end } = getDateRangeBounds(dateRange);
+  const workouts = getWorkoutsByType(RUNNING_WORKOUT_TYPES, start, end);
+  const weeklySummary = getWeeklyWorkoutSummary(RUNNING_WORKOUT_TYPES, start, end);
+
+  // 1. Avg Pace (min/km) — lower = improving
+  const runsWithDistance = workouts.filter(w => w.distance_km && w.distance_km > 0);
+  const paceValues = runsWithDistance.map(w => w.duration_minutes / w.distance_km!);
+  const avgPace = paceValues.length > 0 ? paceValues.reduce((a, b) => a + b, 0) / paceValues.length : null;
+  const paceSummary: MetricSummary = {
+    label: 'Avg Pace',
+    value: avgPace ? Math.round(avgPace * 100) / 100 : null,
+    unit: 'min/km',
+    trend: paceValues.length > 0 ? computeTrendInverted(paceValues) : 'stable',
+    change_percent: paceValues.length > 0 ? computeChangePercent(paceValues) : null,
+    sparkline_data: paceValues,
+  };
+
+  // 2. Avg Heart Rate during runs — lower = improving
+  const runsWithHR = workouts.filter(w => w.avg_heart_rate);
+  const hrValues = runsWithHR.map(w => w.avg_heart_rate!);
+  const avgHR = hrValues.length > 0 ? hrValues.reduce((a, b) => a + b, 0) / hrValues.length : null;
+  const hrSummary: MetricSummary = {
+    label: 'Avg Heart Rate (Runs)',
+    value: avgHR ? Math.round(avgHR) : null,
+    unit: 'bpm',
+    trend: hrValues.length > 0 ? computeTrendInverted(hrValues) : 'stable',
+    change_percent: hrValues.length > 0 ? computeChangePercent(hrValues) : null,
+    sparkline_data: hrValues,
+  };
+
+  // 3. Resting Heart Rate — from records table
+  const rhrData = getDailyAverageByType('HKQuantityTypeIdentifierRestingHeartRate', start, end);
+  const rhrValues = rhrData.map(d => d.avg_value);
+  const avgRHR = rhrValues.length > 0 ? rhrValues.reduce((a, b) => a + b, 0) / rhrValues.length : null;
+  const rhrSummary: MetricSummary = {
+    label: 'Resting Heart Rate',
+    value: avgRHR ? Math.round(avgRHR) : null,
+    unit: 'bpm',
+    trend: rhrValues.length > 0 ? computeTrendInverted(rhrValues) : 'stable',
+    change_percent: rhrValues.length > 0 ? computeChangePercent(rhrValues) : null,
+    sparkline_data: rhrValues,
+  };
+
+  // 4. Runs per Week — higher = improving
+  const weeklyRunCounts = weeklySummary.map(w => w.count);
+  const avgRunsPerWeek = weeklyRunCounts.length > 0 ? weeklyRunCounts.reduce((a, b) => a + b, 0) / weeklyRunCounts.length : null;
+  const runsPerWeekSummary: MetricSummary = {
+    label: 'Runs per Week',
+    value: avgRunsPerWeek ? Math.round(avgRunsPerWeek * 10) / 10 : null,
+    unit: 'count',
+    trend: weeklyRunCounts.length > 0 ? computeTrend(weeklyRunCounts) : 'stable',
+    change_percent: weeklyRunCounts.length > 0 ? computeChangePercent(weeklyRunCounts) : null,
+    sparkline_data: weeklyRunCounts,
+  };
+
+  // 5. Weekly Distance — higher = improving
+  const weeklyDistances = weeklySummary.map(w => w.total_distance);
+  const avgWeeklyDist = weeklyDistances.length > 0 ? weeklyDistances.reduce((a, b) => a + b, 0) / weeklyDistances.length : null;
+  const distanceSummary: MetricSummary = {
+    label: 'Weekly Distance',
+    value: avgWeeklyDist ? Math.round(avgWeeklyDist * 10) / 10 : null,
+    unit: 'km',
+    trend: weeklyDistances.length > 0 ? computeTrend(weeklyDistances) : 'stable',
+    change_percent: weeklyDistances.length > 0 ? computeChangePercent(weeklyDistances) : null,
+    sparkline_data: weeklyDistances,
+  };
+
+  return [paceSummary, hrSummary, rhrSummary, runsPerWeekSummary, distanceSummary];
+}
+
+export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
+  const { start, end } = getDateRangeBounds(dateRange);
+  const workouts = getWorkoutsByType(GYM_WORKOUT_TYPES, start, end);
+  const weeklySummary = getWeeklyWorkoutSummary(GYM_WORKOUT_TYPES, start, end);
+
+  // 1. Workouts per Week — higher = improving
+  const weeklyCounts = weeklySummary.map(w => w.count);
+  const avgPerWeek = weeklyCounts.length > 0 ? weeklyCounts.reduce((a, b) => a + b, 0) / weeklyCounts.length : null;
+  const freqSummary: MetricSummary = {
+    label: 'Workouts per Week',
+    value: avgPerWeek ? Math.round(avgPerWeek * 10) / 10 : null,
+    unit: 'count',
+    trend: weeklyCounts.length > 0 ? computeTrend(weeklyCounts) : 'stable',
+    change_percent: weeklyCounts.length > 0 ? computeChangePercent(weeklyCounts) : null,
+    sparkline_data: weeklyCounts,
+  };
+
+  // 2. Avg Duration — higher = improving
+  const durations = workouts.map(w => w.duration_minutes);
+  const avgDuration = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : null;
+  const durationSummary: MetricSummary = {
+    label: 'Avg Duration',
+    value: avgDuration ? Math.round(avgDuration) : null,
+    unit: 'min',
+    trend: durations.length > 0 ? computeTrend(durations) : 'stable',
+    change_percent: durations.length > 0 ? computeChangePercent(durations) : null,
+    sparkline_data: durations,
+  };
+
+  // 3. Avg Intensity (kcal/min) — higher = improving
+  const withEnergy = workouts.filter(w => w.total_energy_kcal && w.duration_minutes > 0);
+  const intensityValues = withEnergy.map(w => w.total_energy_kcal! / w.duration_minutes);
+  const avgIntensity = intensityValues.length > 0 ? intensityValues.reduce((a, b) => a + b, 0) / intensityValues.length : null;
+  const intensitySummary: MetricSummary = {
+    label: 'Avg Intensity',
+    value: avgIntensity ? Math.round(avgIntensity * 10) / 10 : null,
+    unit: 'kcal/min',
+    trend: intensityValues.length > 0 ? computeTrend(intensityValues) : 'stable',
+    change_percent: intensityValues.length > 0 ? computeChangePercent(intensityValues) : null,
+    sparkline_data: intensityValues,
+  };
+
+  // 4. Avg Heart Rate during gym — higher = improving (working harder)
+  const withHR = workouts.filter(w => w.avg_heart_rate);
+  const gymHRValues = withHR.map(w => w.avg_heart_rate!);
+  const avgGymHR = gymHRValues.length > 0 ? gymHRValues.reduce((a, b) => a + b, 0) / gymHRValues.length : null;
+  const gymHRSummary: MetricSummary = {
+    label: 'Avg Heart Rate (Gym)',
+    value: avgGymHR ? Math.round(avgGymHR) : null,
+    unit: 'bpm',
+    trend: gymHRValues.length > 0 ? computeTrend(gymHRValues) : 'stable',
+    change_percent: gymHRValues.length > 0 ? computeChangePercent(gymHRValues) : null,
+    sparkline_data: gymHRValues,
+  };
+
+  return [freqSummary, durationSummary, intensitySummary, gymHRSummary];
 }

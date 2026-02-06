@@ -14,10 +14,8 @@ function getScoreHex(score: number): string {
 }
 
 const LABELS: Record<string, string> = {
-  cardio: 'Cardio',
-  activity: 'Activity',
-  body: 'Body',
-  recovery: 'Recovery',
+  running: 'Running',
+  gym: 'Gym',
 };
 
 export function ProgressChart({ categories }: ProgressChartProps) {

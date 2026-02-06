@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { getDateRangeBounds } from '@/lib/utils/date-helpers';
 import { computeFitnessScoresForRange, computeScoreForWindow } from '@/lib/analytics/fitness-score';
-import { getCategoryMetrics } from '@/lib/analytics/metrics';
+import { getRunningMetrics, getGymMetrics } from '@/lib/analytics/metrics';
 import { saveFitnessScore, getSyncStatus } from '@/lib/db/queries';
 
 export const runtime = 'nodejs';
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const sync = getSyncStatus();
 
     // Skip expensive score computation when there are no records
-    const scores = sync.total_records > 0
+    const scores = (sync.total_records > 0 || sync.total_workouts > 0)
       ? computeFitnessScoresForRange(start, end)
       : [];
 
@@ -34,44 +34,29 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Compute a single score using data from the selected range
-    const latest = sync.total_records > 0 ? computeScoreForWindow(start, end) : null;
+    const latest = (sync.total_records > 0 || sync.total_workouts > 0) ? computeScoreForWindow(start, end) : null;
 
-    // Build category data using the metrics module
-    const cardioMetrics = getCategoryMetrics('cardio', range);
-    const activityMetrics = getCategoryMetrics('activity', range);
-    const bodyMetrics = getCategoryMetrics('body', range);
-    const recoveryMetrics = getCategoryMetrics('recovery', range);
+    // Build category data using workout-based metrics
+    const runningMetrics = getRunningMetrics(range);
+    const gymMetrics = getGymMetrics(range);
 
-    // Determine overall trend from scores in this range
     const overallTrend = latest?.trend_direction ?? 'stable';
 
     const data: DashboardData = {
       overall_score: latest?.overall_score ?? null,
       overall_trend: overallTrend,
       categories: {
-        cardio: {
-          name: 'Cardio',
-          score: latest?.cardio_score ?? null,
-          trend: cardioMetrics[0]?.trend ?? 'stable',
-          metrics: cardioMetrics,
+        running: {
+          name: 'Running',
+          score: latest?.running_score ?? null,
+          trend: runningMetrics[0]?.trend ?? 'stable',
+          metrics: runningMetrics,
         },
-        activity: {
-          name: 'Activity',
-          score: latest?.activity_score ?? null,
-          trend: activityMetrics[0]?.trend ?? 'stable',
-          metrics: activityMetrics,
-        },
-        body: {
-          name: 'Body',
-          score: latest?.body_score ?? null,
-          trend: bodyMetrics[0]?.trend ?? 'stable',
-          metrics: bodyMetrics,
-        },
-        recovery: {
-          name: 'Recovery',
-          score: latest?.recovery_score ?? null,
-          trend: recoveryMetrics[0]?.trend ?? 'stable',
-          metrics: recoveryMetrics,
+        gym: {
+          name: 'Gym',
+          score: latest?.gym_score ?? null,
+          trend: gymMetrics[0]?.trend ?? 'stable',
+          metrics: gymMetrics,
         },
       },
       last_sync: sync.last_sync,

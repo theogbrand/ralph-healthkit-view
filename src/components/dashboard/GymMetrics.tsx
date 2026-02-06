@@ -3,11 +3,11 @@
 import type { MetricSummary, DateRange } from '@/types/analytics';
 import { CategoryDetail } from './CategoryDetail';
 
-interface CardioMetricsProps {
+interface GymMetricsProps {
   metrics: MetricSummary[];
   dateRange: DateRange;
 }
 
-export function CardioMetrics({ metrics, dateRange }: CardioMetricsProps) {
-  return <CategoryDetail title="Cardio" metrics={metrics} dateRange={dateRange} />;
+export function GymMetrics({ metrics, dateRange }: GymMetricsProps) {
+  return <CategoryDetail title="Gym" metrics={metrics} dateRange={dateRange} />;
 }

@@ -1,6 +1,4 @@
 export { Overview } from './Overview';
-export { CardioMetrics } from './CardioMetrics';
-export { ActivityMetrics } from './ActivityMetrics';
-export { VitalsMetrics } from './VitalsMetrics';
-export { RecoveryMetrics } from './RecoveryMetrics';
+export { RunningMetrics } from './RunningMetrics';
+export { GymMetrics } from './GymMetrics';
 export { CategoryDetail } from './CategoryDetail';

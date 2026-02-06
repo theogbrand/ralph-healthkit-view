@@ -1,9 +1,7 @@
 export interface FitnessScore {
   date: string;
-  cardio_score: number | null;
-  activity_score: number | null;
-  body_score: number | null;
-  recovery_score: number | null;
+  running_score: number | null;
+  gym_score: number | null;
   overall_score: number | null;
   trend_direction: 'improving' | 'stable' | 'declining';
   computed_at: string;
@@ -29,10 +27,8 @@ export interface DashboardData {
   overall_score: number | null;
   overall_trend: 'improving' | 'stable' | 'declining';
   categories: {
-    cardio: CategoryScore;
-    activity: CategoryScore;
-    body: CategoryScore;
-    recovery: CategoryScore;
+    running: CategoryScore;
+    gym: CategoryScore;
   };
   last_sync: string | null;
 }

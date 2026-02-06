@@ -12,11 +12,17 @@ interface CategoryDetailProps {
 }
 
 export function CategoryDetail({ title, metrics, dateRange }: CategoryDetailProps) {
-  if (!metrics.length) {
+  const EMPTY_MESSAGES: Record<string, string> = {
+    Running: 'No runs recorded in this period',
+    Gym: 'No gym workouts recorded in this period',
+  };
+
+  const allEmpty = metrics.every((m) => m.value === null && m.sparkline_data.length === 0);
+  if (!metrics.length || allEmpty) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No {title.toLowerCase()} data available
+          {EMPTY_MESSAGES[title] ?? `No ${title.toLowerCase()} data available`}
         </CardContent>
       </Card>
     );

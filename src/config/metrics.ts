@@ -53,10 +53,26 @@ export const WORKOUT_TYPE_MAP: Record<string, string> = {
 };
 
 export const SCORE_WEIGHTS = {
-  cardio: 0.40,
-  activity: 0.30,
-  body: 0.15,
-  recovery: 0.15,
+  running: 0.55,
+  gym: 0.45,
+};
+
+export const RUNNING_WORKOUT_TYPES = ['Running'];
+export const GYM_WORKOUT_TYPES = ['Strength Training', 'HIIT'];
+
+export const RUNNING_SCORE_WEIGHTS = {
+  resting_hr: 0.25,
+  pace: 0.25,
+  running_hr: 0.20,
+  frequency: 0.15,
+  distance: 0.15,
+};
+
+export const GYM_SCORE_WEIGHTS = {
+  frequency: 0.30,
+  intensity: 0.25,
+  gym_hr: 0.25,
+  duration: 0.20,
 };
 
 export const SCORE_THRESHOLDS = {

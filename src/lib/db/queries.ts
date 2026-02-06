@@ -121,14 +121,57 @@ export function getWorkouts(startDate: string, endDate: string): Workout[] {
   `).all(startDate, endDate) as Workout[];
 }
 
+export function getWorkoutsByType(types: string[], startDate: string, endDate: string): Workout[] {
+  const db = getDb();
+  const placeholders = types.map(() => '?').join(',');
+  return db.prepare(`
+    SELECT * FROM workouts
+    WHERE workout_type IN (${placeholders})
+      AND start_date >= ? AND start_date <= ?
+    ORDER BY start_date ASC
+  `).all(...types, startDate, endDate) as Workout[];
+}
+
+export interface WeeklyWorkoutSummary {
+  week: string;
+  count: number;
+  avg_duration: number;
+  total_distance: number;
+  avg_hr: number | null;
+  avg_energy: number;
+  total_energy: number;
+}
+
+export function getWeeklyWorkoutSummary(types: string[], startDate: string, endDate: string): WeeklyWorkoutSummary[] {
+  const db = getDb();
+  const placeholders = types.map(() => '?').join(',');
+  return db.prepare(`
+    SELECT
+      strftime('%Y-W%W', start_date) as week,
+      COUNT(*) as count,
+      AVG(duration_minutes) as avg_duration,
+      COALESCE(SUM(distance_km), 0) as total_distance,
+      AVG(avg_heart_rate) as avg_hr,
+      AVG(COALESCE(total_energy_kcal, 0)) as avg_energy,
+      COALESCE(SUM(total_energy_kcal), 0) as total_energy
+    FROM workouts
+    WHERE workout_type IN (${placeholders})
+      AND start_date >= ? AND start_date <= ?
+    GROUP BY strftime('%Y-W%W', start_date)
+    ORDER BY week ASC
+  `).all(...types, startDate, endDate) as WeeklyWorkoutSummary[];
+}
+
 export function saveFitnessScore(score: FitnessScore): void {
   const db = getDb();
+  // Map running_score → cardio_score column, gym_score → activity_score column
+  // body_score and recovery_score set to null (no longer computed)
   db.prepare(`
     INSERT OR REPLACE INTO fitness_scores (date, cardio_score, activity_score, body_score, recovery_score, overall_score, trend_direction, computed_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    score.date, score.cardio_score, score.activity_score,
-    score.body_score, score.recovery_score, score.overall_score,
+    score.date, score.running_score, score.gym_score,
+    null, null, score.overall_score,
     score.trend_direction, score.computed_at
   );
 }
@@ -136,7 +179,9 @@ export function saveFitnessScore(score: FitnessScore): void {
 export function getFitnessScores(startDate: string, endDate: string): FitnessScore[] {
   const db = getDb();
   return db.prepare(`
-    SELECT * FROM fitness_scores
+    SELECT date, cardio_score as running_score, activity_score as gym_score,
+           overall_score, trend_direction, computed_at
+    FROM fitness_scores
     WHERE date >= ? AND date <= ?
     ORDER BY date ASC
   `).all(startDate, endDate) as FitnessScore[];
@@ -145,7 +190,9 @@ export function getFitnessScores(startDate: string, endDate: string): FitnessSco
 export function getLatestFitnessScore(): FitnessScore | undefined {
   const db = getDb();
   return db.prepare(`
-    SELECT * FROM fitness_scores WHERE overall_score IS NOT NULL ORDER BY date DESC LIMIT 1
+    SELECT date, cardio_score as running_score, activity_score as gym_score,
+           overall_score, trend_direction, computed_at
+    FROM fitness_scores WHERE overall_score IS NOT NULL ORDER BY date DESC LIMIT 1
   `).get() as FitnessScore | undefined;
 }
 

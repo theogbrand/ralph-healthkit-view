@@ -31,9 +31,19 @@ export function formatMetricValue(value: number, unit: string): string {
       return `${formatNumber(value)} mmHg`;
     case 'breaths/min':
       return `${formatNumber(value, 1)} breaths/min`;
+    case 'min/km':
+      return formatPace(value);
+    case 'kcal/min':
+      return `${formatNumber(value, 1)} kcal/min`;
     default:
       return `${formatNumber(value, 1)} ${unit}`;
   }
+}
+
+export function formatPace(minutesPerKm: number): string {
+  const wholeMinutes = Math.floor(minutesPerKm);
+  const seconds = Math.round((minutesPerKm - wholeMinutes) * 60);
+  return `${wholeMinutes}:${seconds.toString().padStart(2, '0')} min/km`;
 }
 
 export function getScoreColor(score: number): string {

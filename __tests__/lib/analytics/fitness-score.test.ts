@@ -12,13 +12,11 @@ vi.mock('@/lib/db/client', () => ({
 
 // Import after mock is set up
 import {
-  calculateCardioScore,
-  calculateActivityScore,
-  calculateBodyScore,
-  calculateRecoveryScore,
+  calculateRunningScore,
+  calculateGymScore,
   calculateOverallScore,
   detectTrend,
-  computeFitnessScore,
+  computeScoreForWindow,
 } from '@/lib/analytics/fitness-score';
 
 function seedRecords(
@@ -35,13 +33,23 @@ function seedRecords(
   }
 }
 
-function seedWorkouts(db: Database.Database, dates: string[]) {
+function seedRunningWorkouts(db: Database.Database, workouts: { date: string; duration: number; distance: number; hr: number }[]) {
   const stmt = db.prepare(`
     INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
-    VALUES ('HKWorkoutActivityTypeRunning', 30, 5, 300, 140, 'test', null, ?, ?)
+    VALUES ('Running', ?, ?, 300, ?, 'test', null, ?, ?)
   `);
-  for (const date of dates) {
-    stmt.run(date, date);
+  for (const w of workouts) {
+    stmt.run(w.duration, w.distance, w.hr, w.date, w.date);
+  }
+}
+
+function seedGymWorkouts(db: Database.Database, workouts: { date: string; duration: number; energy: number; hr: number }[]) {
+  const stmt = db.prepare(`
+    INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
+    VALUES ('Strength Training', ?, null, ?, ?, 'test', null, ?, ?)
+  `);
+  for (const w of workouts) {
+    stmt.run(w.duration, w.energy, w.hr, w.date, w.date);
   }
 }
 
@@ -57,156 +65,105 @@ describe('fitness-score', () => {
     testDb.close();
   });
 
-  describe('calculateCardioScore', () => {
+  describe('calculateRunningScore', () => {
     it('returns null when no data exists', () => {
-      expect(calculateCardioScore('2025-01-15')).toBeNull();
+      expect(calculateRunningScore('2024-10-01', '2025-01-15')).toBeNull();
     });
 
-    it('returns a score when VO2 Max data exists', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2025-01-10', value: 42.5 },
+    it('returns a score when running workouts and RHR exist', () => {
+      seedRecords(testDb, 'HKQuantityTypeIdentifierRestingHeartRate', [
+        { date: '2025-01-10', value: 55 },
       ]);
-      const score = calculateCardioScore('2025-01-15');
+      seedRunningWorkouts(testDb, [
+        { date: '2025-01-10', duration: 30, distance: 5, hr: 150 },
+      ]);
+      const score = calculateRunningScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
       expect(score!).toBeGreaterThan(0);
       expect(score!).toBeLessThanOrEqual(100);
-    });
-
-    it('scores higher VO2 Max better', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2025-01-10', value: 50 },
-      ]);
-      const highScore = calculateCardioScore('2025-01-15')!;
-
-      // Reset and seed low VO2
-      testDb.exec('DELETE FROM records');
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2025-01-10', value: 30 },
-      ]);
-      const lowScore = calculateCardioScore('2025-01-15')!;
-
-      expect(highScore).toBeGreaterThan(lowScore);
     });
 
     it('scores lower resting HR better', () => {
       seedRecords(testDb, 'HKQuantityTypeIdentifierRestingHeartRate', [
         { date: '2025-01-10', value: 55 },
       ]);
-      const lowHR = calculateCardioScore('2025-01-15')!;
+      const lowHR = calculateRunningScore('2024-10-01', '2025-01-15')!;
 
       testDb.exec('DELETE FROM records');
       seedRecords(testDb, 'HKQuantityTypeIdentifierRestingHeartRate', [
         { date: '2025-01-10', value: 85 },
       ]);
-      const highHR = calculateCardioScore('2025-01-15')!;
+      const highHR = calculateRunningScore('2024-10-01', '2025-01-15')!;
 
       expect(lowHR).toBeGreaterThan(highHR);
     });
+
+    it('scores faster pace better', () => {
+      seedRunningWorkouts(testDb, [
+        { date: '2025-01-10', duration: 25, distance: 5, hr: 150 }, // 5 min/km
+      ]);
+      const fastScore = calculateRunningScore('2024-10-01', '2025-01-15')!;
+
+      testDb.exec('DELETE FROM workouts');
+      seedRunningWorkouts(testDb, [
+        { date: '2025-01-10', duration: 35, distance: 5, hr: 150 }, // 7 min/km
+      ]);
+      const slowScore = calculateRunningScore('2024-10-01', '2025-01-15')!;
+
+      expect(fastScore).toBeGreaterThan(slowScore);
+    });
   });
 
-  describe('calculateActivityScore', () => {
-    it('returns null when no data exists', () => {
-      expect(calculateActivityScore('2025-01-15')).toBeNull();
+  describe('calculateGymScore', () => {
+    it('returns null when no gym workouts exist', () => {
+      expect(calculateGymScore('2024-10-01', '2025-01-15')).toBeNull();
     });
 
-    it('scores higher step counts better', () => {
-      // High steps
-      seedRecords(testDb, 'HKQuantityTypeIdentifierStepCount', [
-        { date: '2025-01-10', value: 12000 },
-        { date: '2025-01-11', value: 11000 },
+    it('returns a score when gym workouts exist', () => {
+      seedGymWorkouts(testDb, [
+        { date: '2025-01-10', duration: 60, energy: 400, hr: 130 },
       ]);
-      const highSteps = calculateActivityScore('2025-01-15')!;
-
-      testDb.exec('DELETE FROM records');
-      seedRecords(testDb, 'HKQuantityTypeIdentifierStepCount', [
-        { date: '2025-01-10', value: 2000 },
-        { date: '2025-01-11', value: 1500 },
-      ]);
-      const lowSteps = calculateActivityScore('2025-01-15')!;
-
-      expect(highSteps).toBeGreaterThan(lowSteps);
-    });
-
-    it('includes workout data in score when present', () => {
-      // With workouts only (no steps), should get a score from workout component
-      seedWorkouts(testDb, [
-        '2025-01-08', '2025-01-09', '2025-01-10', '2025-01-11',
-        '2025-01-12', '2025-01-13', '2025-01-14',
-      ]);
-      const score = calculateActivityScore('2025-01-15');
+      const score = calculateGymScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
       expect(score!).toBeGreaterThan(0);
     });
-  });
 
-  describe('calculateBodyScore', () => {
-    it('returns null when no data exists', () => {
-      expect(calculateBodyScore('2025-01-15')).toBeNull();
-    });
-
-    it('gives max score for healthy BMI', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierBodyMassIndex', [
-        { date: '2025-01-10', value: 22 },
+    it('scores higher intensity better', () => {
+      seedGymWorkouts(testDb, [
+        { date: '2025-01-10', duration: 60, energy: 600, hr: 140 }, // 10 kcal/min
       ]);
-      const score = calculateBodyScore('2025-01-15')!;
-      expect(score).toBe(100);
-    });
+      const highIntensity = calculateGymScore('2024-10-01', '2025-01-15')!;
 
-    it('scores obese BMI lower', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierBodyMassIndex', [
-        { date: '2025-01-10', value: 32 },
+      testDb.exec('DELETE FROM workouts');
+      seedGymWorkouts(testDb, [
+        { date: '2025-01-10', duration: 60, energy: 180, hr: 140 }, // 3 kcal/min
       ]);
-      const score = calculateBodyScore('2025-01-15')!;
-      expect(score).toBeLessThan(100);
-    });
-  });
+      const lowIntensity = calculateGymScore('2024-10-01', '2025-01-15')!;
 
-  describe('calculateRecoveryScore', () => {
-    it('returns null when no data exists', () => {
-      expect(calculateRecoveryScore('2025-01-15')).toBeNull();
-    });
-
-    it('gives high score for optimal sleep (7-9 hours)', () => {
-      seedRecords(testDb, 'HKCategoryTypeIdentifierSleepAnalysis', [
-        { date: '2025-01-10', value: 8 },
-        { date: '2025-01-11', value: 7.5 },
-        { date: '2025-01-12', value: 8 },
-      ]);
-      const score = calculateRecoveryScore('2025-01-15')!;
-      expect(score).toBeGreaterThan(80);
-    });
-
-    it('gives lower score for insufficient sleep', () => {
-      seedRecords(testDb, 'HKCategoryTypeIdentifierSleepAnalysis', [
-        { date: '2025-01-10', value: 4 },
-        { date: '2025-01-11', value: 4.5 },
-        { date: '2025-01-12', value: 5 },
-      ]);
-      const score = calculateRecoveryScore('2025-01-15')!;
-      expect(score).toBeLessThan(70);
+      expect(highIntensity).toBeGreaterThan(lowIntensity);
     });
   });
 
   describe('calculateOverallScore', () => {
     it('returns null when all inputs are null', () => {
-      expect(calculateOverallScore(null, null, null, null)).toBeNull();
+      expect(calculateOverallScore(null, null)).toBeNull();
     });
 
-    it('returns weighted average when all scores present', () => {
-      const result = calculateOverallScore(80, 70, 90, 60);
-      // Expected: (80*0.40 + 70*0.30 + 90*0.15 + 60*0.15) = 32+21+13.5+9 = 75.5
+    it('returns weighted average when both scores present', () => {
+      const result = calculateOverallScore(80, 70);
+      // Expected: (80*0.55 + 70*0.45) = 44 + 31.5 = 75.5
       expect(result).toBeCloseTo(75.5, 1);
     });
 
-    it('normalizes weights when some scores are null', () => {
-      // Only cardio and activity
-      const result = calculateOverallScore(80, 70, null, null);
-      // (80*0.40 + 70*0.30) / (0.40 + 0.30) = (32 + 21) / 0.70 = 75.71...
-      expect(result).toBeCloseTo(53 / 0.7, 1);
+    it('normalizes weights when one score is null', () => {
+      // Only running
+      const result = calculateOverallScore(80, null);
+      // 80 * 0.55 / 0.55 = 80
+      expect(result).toBeCloseTo(80, 1);
     });
 
     it('uses SCORE_WEIGHTS correctly', () => {
-      expect(SCORE_WEIGHTS.cardio + SCORE_WEIGHTS.activity + SCORE_WEIGHTS.body + SCORE_WEIGHTS.recovery).toBeCloseTo(1.0);
+      expect(SCORE_WEIGHTS.running + SCORE_WEIGHTS.gym).toBeCloseTo(1.0);
     });
   });
 
@@ -240,18 +197,19 @@ describe('fitness-score', () => {
     });
   });
 
-  describe('computeFitnessScore', () => {
+  describe('computeScoreForWindow', () => {
     it('returns a complete FitnessScore object', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2025-01-10', value: 42 },
+      seedRecords(testDb, 'HKQuantityTypeIdentifierRestingHeartRate', [
+        { date: '2025-01-10', value: 55 },
+      ]);
+      seedRunningWorkouts(testDb, [
+        { date: '2025-01-10', duration: 30, distance: 5, hr: 150 },
       ]);
 
-      const score = computeFitnessScore('2025-01-15');
+      const score = computeScoreForWindow('2024-10-01', '2025-01-15');
       expect(score).toHaveProperty('date', '2025-01-15');
-      expect(score).toHaveProperty('cardio_score');
-      expect(score).toHaveProperty('activity_score');
-      expect(score).toHaveProperty('body_score');
-      expect(score).toHaveProperty('recovery_score');
+      expect(score).toHaveProperty('running_score');
+      expect(score).toHaveProperty('gym_score');
       expect(score).toHaveProperty('overall_score');
       expect(score).toHaveProperty('trend_direction');
       expect(score).toHaveProperty('computed_at');
@@ -259,44 +217,39 @@ describe('fitness-score', () => {
     });
 
     it('returns all null scores when no data', () => {
-      const score = computeFitnessScore('2025-01-15');
-      expect(score.cardio_score).toBeNull();
-      expect(score.activity_score).toBeNull();
-      expect(score.body_score).toBeNull();
-      expect(score.recovery_score).toBeNull();
+      const score = computeScoreForWindow('2024-10-01', '2025-01-15');
+      expect(score.running_score).toBeNull();
+      expect(score.gym_score).toBeNull();
       expect(score.overall_score).toBeNull();
     });
   });
 
   describe('edge cases', () => {
-    it('handles single data point', () => {
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2025-01-15', value: 40 },
+    it('handles single running workout', () => {
+      seedRunningWorkouts(testDb, [
+        { date: '2025-01-15', duration: 30, distance: 5, hr: 150 },
       ]);
-      const score = calculateCardioScore('2025-01-15');
+      const score = calculateRunningScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
       expect(score!).toBeGreaterThan(0);
     });
 
-    it('handles all-same-value data', () => {
-      const dates = Array.from({ length: 30 }, (_, i) => {
-        const d = new Date('2025-01-15');
-        d.setDate(d.getDate() - i);
-        return d.toISOString().split('T')[0];
-      });
-      for (const date of dates) {
-        seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [{ date, value: 42 }]);
-      }
-      const score = calculateCardioScore('2025-01-15');
+    it('handles runs without distance (treadmill)', () => {
+      const stmt = testDb.prepare(`
+        INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
+        VALUES ('Running', 30, 0, 300, 150, 'test', null, '2025-01-10', '2025-01-10')
+      `);
+      stmt.run();
+      const score = calculateRunningScore('2024-10-01', '2025-01-15');
+      // Should still get a score from frequency, distance=0 excluded from pace
       expect(score).not.toBeNull();
     });
 
-    it('ignores data outside 90-day window', () => {
-      // Data from 200 days ago should not affect score for today
-      seedRecords(testDb, 'HKQuantityTypeIdentifierVO2Max', [
-        { date: '2024-06-01', value: 50 },
+    it('ignores data outside date range', () => {
+      seedRunningWorkouts(testDb, [
+        { date: '2024-01-01', duration: 30, distance: 5, hr: 150 },
       ]);
-      const score = calculateCardioScore('2025-01-15');
+      const score = calculateRunningScore('2025-01-01', '2025-01-15');
       expect(score).toBeNull();
     });
   });
