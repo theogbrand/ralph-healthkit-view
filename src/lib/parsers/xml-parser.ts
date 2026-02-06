@@ -2,7 +2,7 @@
  * Apple Health XML Parser
  *
  * Parses Apple Health export.xml files using a streaming SAX parser to handle
- * large files (100MB+) without hitting V8's string length limit.
+ * large files (1GB+) without hitting V8's string length limit or heap limits.
  */
 
 import { createStream, SAXStream } from 'sax';
@@ -52,14 +52,17 @@ export interface ParseOptions {
 }
 
 /**
- * Parse Apple Health export XML from a Buffer using streaming SAX parser.
+ * Parse Apple Health export XML using streaming SAX parser.
+ *
+ * Accepts a Buffer or a Readable stream. For large files (1GB+), prefer passing
+ * a Readable stream to avoid loading the entire file into memory.
  *
  * When `onBatch` is provided, records/workouts are flushed via the callback
  * in batches and the returned `ParseResult.records`/`workouts` will be empty.
  * Stats are always accumulated and returned.
  */
 export async function parseAppleHealthXML(
-  input: Buffer,
+  input: Buffer | Readable,
   options: ParseOptions = {}
 ): Promise<ParseResult> {
   const { onProgress, onBatch, batchSize = 1000 } = options;
@@ -229,11 +232,27 @@ export async function parseAppleHealthXML(
       });
     });
 
-    // Stream the buffer through the SAX parser
-    const readable = new Readable();
-    readable.push(input);
-    readable.push(null);
-    readable.pipe(saxStream);
+    // Stream input through the SAX parser
+    if (Buffer.isBuffer(input)) {
+      // Chunk large buffers to avoid backpressure issues
+      const CHUNK_SIZE = 64 * 1024; // 64KB chunks
+      const readable = new Readable({
+        read() {
+          if (offset >= input.length) {
+            this.push(null);
+            return;
+          }
+          const end = Math.min(offset + CHUNK_SIZE, input.length);
+          this.push(input.subarray(offset, end));
+          offset = end;
+        },
+      });
+      let offset = 0;
+      readable.pipe(saxStream);
+    } else {
+      // Pipe Readable stream directly to SAX parser
+      input.pipe(saxStream);
+    }
   });
 }
 

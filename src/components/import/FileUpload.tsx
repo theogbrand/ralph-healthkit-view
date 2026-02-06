@@ -188,7 +188,7 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
               Drag and drop your export.zip file here, or click to browse
             </p>
             <p className="text-xs text-gray-500">
-              Supports .zip and .xml files (up to 100MB)
+              Supports .zip and .xml files
             </p>
           </div>
 
