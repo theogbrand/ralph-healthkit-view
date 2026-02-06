@@ -220,27 +220,17 @@ CREATE INDEX idx_scores_date ON fitness_scores(date DESC);
 
 ### Overall Score: Weighted Composite (0-100)
 
-**Cardio Fitness (40% weight)**
+**Cardio Fitness (50% weight)**
 - VO2 Max trend (if available): Points based on change over 90 days
 - Resting Heart Rate trend: Lower is better
 - Heart Rate Variability trend: Higher is better
 - Walking/running pace improvement
 
-**Activity Level (30% weight)**
+**Activity Level (50% weight)**
 - Average daily steps: 10K+ = max points
 - Weekly exercise minutes: 150+ = max points
 - Active energy burned trend
 - Workout consistency and frequency
-
-**Body Composition (15% weight)**
-- Weight trend relative to healthy BMI
-- Body fat percentage trend
-- Consistency of measurements
-
-**Recovery (15% weight)**
-- Sleep duration (target: 7-9 hours)
-- Sleep consistency (regular schedule)
-- Heart rate variability (HRV indicator)
 
 ### Trend Detection (90-day windows)
 1. Divide last 90 days into two 45-day periods
