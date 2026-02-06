@@ -1,7 +1,7 @@
 import type { DateRange, MetricSummary } from '@/types/analytics';
 import { HEALTH_TYPE_MAP, RUNNING_WORKOUT_TYPES, GYM_WORKOUT_TYPES } from '@/config/metrics';
 import { getDateRangeBounds, formatDateISO } from '@/lib/utils/date-helpers';
-import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getWeeklyWorkoutSummary } from '@/lib/db/queries';
+import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getWeeklyWorkoutSummary, getRunningWorkoutsWithDistance, getWeeklyRunningDistance } from '@/lib/db/queries';
 
 // Types that should use SUM aggregation (cumulative daily metrics)
 const SUM_TYPES = new Set([
@@ -112,12 +112,16 @@ function computeTrendInverted(values: number[]): 'improving' | 'stable' | 'decli
 
 export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
   const { start, end } = getDateRangeBounds(dateRange);
-  const workouts = getWorkoutsByType(RUNNING_WORKOUT_TYPES, start, end);
+  const workoutsWithDist = getRunningWorkoutsWithDistance(start, end);
   const weeklySummary = getWeeklyWorkoutSummary(RUNNING_WORKOUT_TYPES, start, end);
 
+  // duration_minutes is stored in hours due to a parser bug (duration_seconds / 60 / 60).
+  // Multiply by 60 to get actual minutes.
+  const DURATION_CORRECTION = 60;
+
   // 1. Avg Pace (min/km) — lower = improving
-  const runsWithDistance = workouts.filter(w => w.distance_km && w.distance_km > 0);
-  const paceValues = runsWithDistance.map(w => w.duration_minutes / w.distance_km!);
+  const runsWithDistance = workoutsWithDist.filter(w => w.computed_distance_km && w.computed_distance_km > 0);
+  const paceValues = runsWithDistance.map(w => (w.duration_minutes * DURATION_CORRECTION) / w.computed_distance_km!);
   const avgPace = paceValues.length > 0 ? paceValues.reduce((a, b) => a + b, 0) / paceValues.length : null;
   const paceSummary: MetricSummary = {
     label: 'Avg Pace',
@@ -129,7 +133,7 @@ export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
   };
 
   // 2. Avg Heart Rate during runs — lower = improving
-  const runsWithHR = workouts.filter(w => w.avg_heart_rate);
+  const runsWithHR = workoutsWithDist.filter(w => w.avg_heart_rate);
   const hrValues = runsWithHR.map(w => w.avg_heart_rate!);
   const avgHR = hrValues.length > 0 ? hrValues.reduce((a, b) => a + b, 0) / hrValues.length : null;
   const hrSummary: MetricSummary = {
@@ -166,8 +170,9 @@ export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
     sparkline_data: weeklyRunCounts,
   };
 
-  // 5. Weekly Distance — higher = improving
-  const weeklyDistances = weeklySummary.map(w => w.total_distance);
+  // 5. Weekly Distance — computed from records table correlated with workout windows
+  const weeklyRunDist = getWeeklyRunningDistance(start, end);
+  const weeklyDistances = weeklyRunDist.map(w => w.total_distance);
   const avgWeeklyDist = weeklyDistances.length > 0 ? weeklyDistances.reduce((a, b) => a + b, 0) / weeklyDistances.length : null;
   const distanceSummary: MetricSummary = {
     label: 'Weekly Distance',
@@ -186,6 +191,9 @@ export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
   const workouts = getWorkoutsByType(GYM_WORKOUT_TYPES, start, end);
   const weeklySummary = getWeeklyWorkoutSummary(GYM_WORKOUT_TYPES, start, end);
 
+  // duration_minutes is stored in hours due to parser bug; multiply by 60 for actual minutes
+  const DURATION_CORRECTION = 60;
+
   // 1. Workouts per Week — higher = improving
   const weeklyCounts = weeklySummary.map(w => w.count);
   const avgPerWeek = weeklyCounts.length > 0 ? weeklyCounts.reduce((a, b) => a + b, 0) / weeklyCounts.length : null;
@@ -198,8 +206,8 @@ export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
     sparkline_data: weeklyCounts,
   };
 
-  // 2. Avg Duration — higher = improving
-  const durations = workouts.map(w => w.duration_minutes);
+  // 2. Avg Duration — higher = improving (corrected to actual minutes)
+  const durations = workouts.map(w => w.duration_minutes * DURATION_CORRECTION);
   const avgDuration = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : null;
   const durationSummary: MetricSummary = {
     label: 'Avg Duration',
@@ -210,9 +218,9 @@ export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
     sparkline_data: durations,
   };
 
-  // 3. Avg Intensity (kcal/min) — higher = improving
+  // 3. Avg Intensity (kcal/min) — higher = improving (corrected duration)
   const withEnergy = workouts.filter(w => w.total_energy_kcal && w.duration_minutes > 0);
-  const intensityValues = withEnergy.map(w => w.total_energy_kcal! / w.duration_minutes);
+  const intensityValues = withEnergy.map(w => w.total_energy_kcal! / (w.duration_minutes * DURATION_CORRECTION));
   const avgIntensity = intensityValues.length > 0 ? intensityValues.reduce((a, b) => a + b, 0) / intensityValues.length : null;
   const intensitySummary: MetricSummary = {
     label: 'Avg Intensity',

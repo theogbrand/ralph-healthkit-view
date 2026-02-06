@@ -162,6 +162,38 @@ export function getWeeklyWorkoutSummary(types: string[], startDate: string, endD
   `).all(...types, startDate, endDate) as WeeklyWorkoutSummary[];
 }
 
+export function getRunningWorkoutsWithDistance(startDate: string, endDate: string): Array<Workout & { computed_distance_km: number | null }> {
+  const db = getDb();
+  return db.prepare(`
+    SELECT w.*,
+      (SELECT SUM(r.value) FROM records r
+       WHERE r.type = 'HKQuantityTypeIdentifierDistanceWalkingRunning'
+       AND r.start_date >= w.start_date AND r.start_date <= w.end_date) as computed_distance_km
+    FROM workouts w
+    WHERE w.workout_type = 'Running'
+      AND w.start_date >= ? AND w.start_date <= ?
+    ORDER BY w.start_date ASC
+  `).all(startDate, endDate) as Array<Workout & { computed_distance_km: number | null }>;
+}
+
+export function getWeeklyRunningDistance(startDate: string, endDate: string): Array<{ week: string; total_distance: number }> {
+  const db = getDb();
+  return db.prepare(`
+    SELECT
+      strftime('%Y-W%W', w.start_date) as week,
+      COALESCE(SUM(
+        (SELECT SUM(r.value) FROM records r
+         WHERE r.type = 'HKQuantityTypeIdentifierDistanceWalkingRunning'
+         AND r.start_date >= w.start_date AND r.start_date <= w.end_date)
+      ), 0) as total_distance
+    FROM workouts w
+    WHERE w.workout_type = 'Running'
+      AND w.start_date >= ? AND w.start_date <= ?
+    GROUP BY strftime('%Y-W%W', w.start_date)
+    ORDER BY week ASC
+  `).all(startDate, endDate) as Array<{ week: string; total_distance: number }>;
+}
+
 export function saveFitnessScore(score: FitnessScore): void {
   const db = getDb();
   // Map running_score → cardio_score column, gym_score → activity_score column
