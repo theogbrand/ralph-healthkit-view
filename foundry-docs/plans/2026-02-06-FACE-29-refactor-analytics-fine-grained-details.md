@@ -4,7 +4,7 @@
 **Date**: 2026-02-06
 **Research**: foundry-docs/research/2026-02-06-FACE-29-refactor-analytics-view-fine-grained-details.md
 **Specification**: foundry-docs/specifications/2026-02-06-FACE-29-refactor-analytics-view-fine-grained-details.md
-**Status**: Ready for Implementation
+**Status**: Implementation Complete
 
 ## Overview
 
@@ -14,18 +14,28 @@ Transform the 4-category analytics dashboard (Cardio, Activity, Body, Recovery) 
 
 ## Success Criteria
 
-- [ ] Dashboard shows 2 category cards: "Running" and "Gym" (no Body/Recovery)
-- [ ] Running detail view shows 5 metrics: Avg Pace, Avg HR (runs), Resting HR, Runs/Week, Weekly Distance
-- [ ] Gym detail view shows 4 metrics: Workouts/Week, Avg Duration, Avg Intensity, Avg HR (gym)
-- [ ] Pace formatted as M:SS min/km (e.g., "5:32 min/km")
-- [ ] Score weights: Running 55%, Gym 45%
-- [ ] HIIT workouts classified under Gym
-- [ ] Graceful empty states when no workout data exists
-- [ ] Overall Fitness Score gauge unchanged (still shows composite score)
-- [ ] Category Breakdown bar chart shows only Running and Gym
-- [ ] All tests pass: `npm run test`
-- [ ] Type check passes: `npx tsc --noEmit`
-- [ ] Build passes: `npm run build`
+- [x] Dashboard shows 2 category cards: "Running" and "Gym" (no Body/Recovery)
+- [x] Running detail view shows 5 metrics: Avg Pace, Avg HR (runs), Resting HR, Runs/Week, Weekly Distance
+- [x] Gym detail view shows 4 metrics: Workouts/Week, Avg Duration, Avg Intensity, Avg HR (gym)
+- [x] Pace formatted as M:SS min/km (e.g., "5:32 min/km")
+- [x] Score weights: Running 55%, Gym 45%
+- [x] HIIT workouts classified under Gym
+- [x] Graceful empty states when no workout data exists
+- [x] Overall Fitness Score gauge unchanged (still shows composite score)
+- [x] Category Breakdown bar chart shows only Running and Gym
+- [x] All tests pass: `npm run test`
+- [x] Type check passes: `npx tsc --noEmit`
+- [x] Build passes: `npm run build`
+
+## Implementation Notes
+
+All 6 phases were implemented as specified with no deviations from the plan. Key details:
+
+- **31 tests pass** (22 fitness-score tests + 9 import-pipeline tests)
+- **DB column mapping**: `running_score` → `cardio_score` column, `gym_score` → `activity_score` column (no migration needed)
+- **Deleted old components**: CardioMetrics.tsx, ActivityMetrics.tsx, VitalsMetrics.tsx, RecoveryMetrics.tsx
+- **Created new components**: RunningMetrics.tsx, GymMetrics.tsx
+- **No deviations from the plan** — all changes match the specified file change summary
 
 ## Phases
 
