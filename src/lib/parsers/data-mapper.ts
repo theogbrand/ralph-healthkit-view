@@ -8,6 +8,19 @@
 import type { ParsedHealthRecord, ParsedWorkout } from './xml-parser';
 import { HEALTH_TYPE_MAP } from '@/config/metrics';
 
+/**
+ * Normalize Apple Health date strings to a format SQLite can parse.
+ *
+ * Apple Health exports dates like "2025-10-01 08:00:00 +0800".
+ * SQLite's DATE() function cannot handle this format (returns NULL).
+ * We strip the trailing timezone offset so dates become "2025-10-01 08:00:00",
+ * which SQLite handles correctly.
+ */
+function normalizeDate(dateStr: string): string {
+  // Strip trailing timezone offset like " +0800" or " -0530"
+  return dateStr.replace(/\s+[+-]\d{4}$/, '');
+}
+
 export interface DatabaseRecord {
   type: string;
   readable_type: string;
@@ -89,9 +102,9 @@ export function mapRecordToDatabase(record: ParsedHealthRecord): DatabaseRecord 
     unit: record.unit,
     source_name: record.sourceName || 'Unknown',
     device: record.device,
-    start_date: record.startDate,
-    end_date: record.endDate,
-    created_date: record.creationDate || null,
+    start_date: normalizeDate(record.startDate),
+    end_date: normalizeDate(record.endDate),
+    created_date: record.creationDate ? normalizeDate(record.creationDate) : null,
   };
 }
 
@@ -110,8 +123,8 @@ export function mapWorkoutToDatabase(workout: ParsedWorkout): DatabaseWorkout {
     avg_heart_rate: workout.avgHeartRate,
     source_name: workout.sourceName || 'Unknown',
     device: workout.device,
-    start_date: workout.startDate,
-    end_date: workout.endDate,
+    start_date: normalizeDate(workout.startDate),
+    end_date: normalizeDate(workout.endDate),
   };
 }
 
