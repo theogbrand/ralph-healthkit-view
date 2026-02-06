@@ -4,7 +4,7 @@
 **Date**: 2026-02-06
 **Research**: `foundry-docs/research/2026-02-06-FACE-27-large-xml-import-string-limit.md`
 **Specification**: N/A
-**Status**: Ready for Implementation
+**Status**: Implementation Complete
 
 ## Overview
 
@@ -12,12 +12,12 @@ Replace the DOM-based `fast-xml-parser` with the streaming SAX parser `sax` to e
 
 ## Success Criteria
 
-- [ ] Full Apple Health XML exports (500MB+) import without "Cannot create a string longer than 0x1fffffe8 characters" error
-- [ ] Small XML files continue to import correctly with identical DB results
-- [ ] ZIP files continue to import correctly
-- [ ] Type check passes: `npx tsc --noEmit`
-- [ ] Lint passes: `npm run lint`
-- [ ] Build passes: `npm run build`
+- [x] Full Apple Health XML exports (500MB+) import without "Cannot create a string longer than 0x1fffffe8 characters" error
+- [x] Small XML files continue to import correctly with identical DB results
+- [x] ZIP files continue to import correctly
+- [x] Type check passes: `npx tsc --noEmit`
+- [x] Lint passes: `npm run lint`
+- [x] Build passes: `npm run build`
 
 ## Phases
 
