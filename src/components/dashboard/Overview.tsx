@@ -8,10 +8,8 @@ import { MetricCard } from '@/components/charts/MetricCard';
 import { ProgressChart } from '@/components/charts/ProgressChart';
 import { TrendChart } from '@/components/charts/TrendChart';
 
-import { CardioMetrics } from './CardioMetrics';
-import { ActivityMetrics } from './ActivityMetrics';
-import { VitalsMetrics } from './VitalsMetrics';
-import { RecoveryMetrics } from './RecoveryMetrics';
+import { RunningMetrics } from './RunningMetrics';
+import { GymMetrics } from './GymMetrics';
 
 type ApiResponse = DashboardData & {
   score_history: Array<{ date: string; value: number }>;
@@ -23,10 +21,8 @@ interface OverviewProps {
 }
 
 const CATEGORY_CONFIG = [
-  { key: 'cardio' as const, label: 'Cardio', Component: CardioMetrics },
-  { key: 'activity' as const, label: 'Activity', Component: ActivityMetrics },
-  { key: 'body' as const, label: 'Body', Component: VitalsMetrics },
-  { key: 'recovery' as const, label: 'Recovery', Component: RecoveryMetrics },
+  { key: 'running' as const, label: 'Running', Component: RunningMetrics },
+  { key: 'gym' as const, label: 'Gym', Component: GymMetrics },
 ];
 
 export function Overview({ data, dateRange }: OverviewProps) {
@@ -49,7 +45,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
       </section>
 
       {/* Category Cards — click to expand details */}
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {CATEGORY_CONFIG.map(({ key }) => {
           const cat = data.categories[key];
           return (
