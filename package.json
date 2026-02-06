@@ -15,13 +15,13 @@
     "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "fast-xml-parser": "^5.3.4",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
+    "sax": "^1.4.4",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sax": "^1.2.7",
     "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",

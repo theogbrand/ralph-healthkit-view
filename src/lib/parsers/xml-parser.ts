@@ -1,11 +1,12 @@
 /**
  * Apple Health XML Parser
  *
- * Parses Apple Health export.xml files efficiently, handling large files (100MB+)
- * Uses streaming approach to avoid loading entire file into memory
+ * Parses Apple Health export.xml files using a streaming SAX parser to handle
+ * large files (100MB+) without hitting V8's string length limit.
  */
 
-import { XMLParser } from 'fast-xml-parser';
+import { createStream, SAXStream } from 'sax';
+import { Readable } from 'stream';
 
 export interface ParsedHealthRecord {
   type: string;
@@ -46,201 +47,204 @@ export interface ParseResult {
 
 export interface ParseOptions {
   onProgress?: (processed: number, total: number) => void;
+  onBatch?: (records: ParsedHealthRecord[], workouts: ParsedWorkout[]) => void;
   batchSize?: number;
 }
 
 /**
- * Parse Apple Health export XML file
+ * Parse Apple Health export XML from a Buffer using streaming SAX parser.
  *
- * @param xmlContent - The XML file content as string
- * @param options - Parsing options including progress callback
- * @returns Parsed health records and workouts with statistics
+ * When `onBatch` is provided, records/workouts are flushed via the callback
+ * in batches and the returned `ParseResult.records`/`workouts` will be empty.
+ * Stats are always accumulated and returned.
  */
 export async function parseAppleHealthXML(
-  xmlContent: string,
+  input: Buffer,
   options: ParseOptions = {}
 ): Promise<ParseResult> {
-  const { onProgress, batchSize = 1000 } = options;
+  const { onProgress, onBatch, batchSize = 1000 } = options;
 
-  // Configure XML parser
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: '@_',
-    parseAttributeValue: true,
-    trimValues: true,
-    // Don't parse text nodes as we only need attributes
-    ignoreDeclaration: true,
-    ignorePiTags: true,
-  });
+  return new Promise((resolve, reject) => {
+    const saxStream: SAXStream = createStream(true, { trim: true });
 
-  // Parse the XML
-  const parsed = parser.parse(xmlContent);
+    // Accumulation state
+    let foundHealthData = false;
+    const records: ParsedHealthRecord[] = [];
+    const workouts: ParsedWorkout[] = [];
+    const recordTypeCounts: Record<string, number> = {};
+    let earliestDate = '';
+    let latestDate = '';
+    let totalRecords = 0;
+    let totalWorkouts = 0;
 
-  // Extract health data from parsed structure
-  const healthData = parsed.HealthData;
+    // Batch buffers (used when onBatch is provided)
+    let recordBatch: ParsedHealthRecord[] = [];
+    let workoutBatch: ParsedWorkout[] = [];
 
-  if (!healthData) {
-    throw new Error('Invalid Apple Health export: Missing HealthData root element');
-  }
+    // Workout parsing state — Workout elements can have WorkoutStatistics children
+    let currentWorkout: ParsedWorkout | null = null;
 
-  const records: ParsedHealthRecord[] = [];
-  const workouts: ParsedWorkout[] = [];
-  const recordTypeCounts: Record<string, number> = {};
-  let earliestDate = '';
-  let latestDate = '';
-
-  // Process Record elements (health metrics)
-  const rawRecords = Array.isArray(healthData.Record)
-    ? healthData.Record
-    : healthData.Record
-      ? [healthData.Record]
-      : [];
-
-  for (let i = 0; i < rawRecords.length; i++) {
-    const record = rawRecords[i];
-
-    // Progress callback
-    if (onProgress && i % batchSize === 0) {
-      onProgress(i, rawRecords.length);
+    function updateDateRange(startDate: string) {
+      if (!earliestDate || startDate < earliestDate) earliestDate = startDate;
+      if (!latestDate || startDate > latestDate) latestDate = startDate;
     }
 
-    const type = record['@_type'];
-    const value = parseFloat(record['@_value']);
-    const unit = record['@_unit'];
-    const sourceName = record['@_sourceName'];
-    const device = record['@_device'] || null;
-    const startDate = record['@_startDate'];
-    const endDate = record['@_endDate'];
-    const creationDate = record['@_creationDate'];
-
-    // Skip invalid records
-    if (!type || isNaN(value) || !startDate || !endDate) {
-      continue;
-    }
-
-    // Track date range
-    if (!earliestDate || startDate < earliestDate) {
-      earliestDate = startDate;
-    }
-    if (!latestDate || startDate > latestDate) {
-      latestDate = startDate;
-    }
-
-    // Count record types
-    recordTypeCounts[type] = (recordTypeCounts[type] || 0) + 1;
-
-    records.push({
-      type,
-      value,
-      unit,
-      sourceName,
-      device,
-      startDate,
-      endDate,
-      creationDate,
-    });
-  }
-
-  // Process Workout elements
-  const rawWorkouts = Array.isArray(healthData.Workout)
-    ? healthData.Workout
-    : healthData.Workout
-      ? [healthData.Workout]
-      : [];
-
-  for (let i = 0; i < rawWorkouts.length; i++) {
-    const workout = rawWorkouts[i];
-
-    const workoutType = workout['@_workoutActivityType'];
-    const duration = parseFloat(workout['@_duration']);
-    const durationMinutes = duration ? duration / 60 : 0; // Convert seconds to minutes
-    const startDate = workout['@_startDate'];
-    const endDate = workout['@_endDate'];
-    const sourceName = workout['@_sourceName'];
-    const device = workout['@_device'] || null;
-
-    // Optional fields
-    const totalDistance = workout['@_totalDistance']
-      ? parseFloat(workout['@_totalDistance'])
-      : null;
-    const totalEnergyBurned = workout['@_totalEnergyBurned']
-      ? parseFloat(workout['@_totalEnergyBurned'])
-      : null;
-
-    // Skip invalid workouts
-    if (!workoutType || isNaN(duration) || !startDate || !endDate) {
-      continue;
-    }
-
-    // Track date range
-    if (!earliestDate || startDate < earliestDate) {
-      earliestDate = startDate;
-    }
-    if (!latestDate || startDate > latestDate) {
-      latestDate = startDate;
-    }
-
-    // Extract average heart rate from workout statistics if available
-    let avgHeartRate: number | null = null;
-    const workoutStats = workout.WorkoutStatistics;
-    if (workoutStats) {
-      const stats = Array.isArray(workoutStats) ? workoutStats : [workoutStats];
-      const hrStat = stats.find((s: any) =>
-        s['@_type'] === 'HKQuantityTypeIdentifierHeartRate'
-      );
-      if (hrStat && hrStat['@_average']) {
-        avgHeartRate = parseFloat(hrStat['@_average']);
+    function flushBatch() {
+      if (onBatch && (recordBatch.length > 0 || workoutBatch.length > 0)) {
+        onBatch(recordBatch, workoutBatch);
+        recordBatch = [];
+        workoutBatch = [];
       }
     }
 
-    workouts.push({
-      workoutType,
-      durationMinutes,
-      distanceKm: totalDistance,
-      totalEnergyKcal: totalEnergyBurned,
-      avgHeartRate,
-      sourceName,
-      device,
-      startDate,
-      endDate,
+    function addRecord(record: ParsedHealthRecord) {
+      totalRecords++;
+      recordTypeCounts[record.type] = (recordTypeCounts[record.type] || 0) + 1;
+      updateDateRange(record.startDate);
+
+      if (onBatch) {
+        recordBatch.push(record);
+        if (recordBatch.length >= batchSize) flushBatch();
+      } else {
+        records.push(record);
+      }
+
+      if (onProgress && totalRecords % batchSize === 0) {
+        onProgress(totalRecords, 0);
+      }
+    }
+
+    function addWorkout(workout: ParsedWorkout) {
+      totalWorkouts++;
+      updateDateRange(workout.startDate);
+
+      if (onBatch) {
+        workoutBatch.push(workout);
+        if (workoutBatch.length >= batchSize) flushBatch();
+      } else {
+        workouts.push(workout);
+      }
+    }
+
+    saxStream.on('opentag', (tag) => {
+      const attrs = tag.attributes as Record<string, string>;
+
+      switch (tag.name) {
+        case 'HealthData':
+          foundHealthData = true;
+          break;
+
+        case 'Record': {
+          const type = attrs.type;
+          const value = parseFloat(attrs.value);
+          const unit = attrs.unit;
+          const sourceName = attrs.sourceName;
+          const startDate = attrs.startDate;
+          const endDate = attrs.endDate;
+
+          if (!type || isNaN(value) || !startDate || !endDate) break;
+
+          addRecord({
+            type,
+            value,
+            unit,
+            sourceName,
+            device: attrs.device || null,
+            startDate,
+            endDate,
+            creationDate: attrs.creationDate || null,
+          });
+          break;
+        }
+
+        case 'Workout': {
+          const workoutType = attrs.workoutActivityType;
+          const duration = parseFloat(attrs.duration);
+          const startDate = attrs.startDate;
+          const endDate = attrs.endDate;
+          const sourceName = attrs.sourceName;
+
+          if (!workoutType || isNaN(duration) || !startDate || !endDate) break;
+
+          currentWorkout = {
+            workoutType,
+            durationMinutes: duration / 60,
+            distanceKm: attrs.totalDistance ? parseFloat(attrs.totalDistance) : null,
+            totalEnergyKcal: attrs.totalEnergyBurned ? parseFloat(attrs.totalEnergyBurned) : null,
+            avgHeartRate: null,
+            sourceName,
+            device: attrs.device || null,
+            startDate,
+            endDate,
+          };
+          break;
+        }
+
+        case 'WorkoutStatistics': {
+          if (
+            currentWorkout &&
+            attrs.type === 'HKQuantityTypeIdentifierHeartRate' &&
+            attrs.average
+          ) {
+            currentWorkout.avgHeartRate = parseFloat(attrs.average);
+          }
+          break;
+        }
+      }
     });
-  }
 
-  // Final progress update
-  if (onProgress) {
-    onProgress(rawRecords.length, rawRecords.length);
-  }
+    saxStream.on('closetag', (tagName) => {
+      if (tagName === 'Workout' && currentWorkout) {
+        addWorkout(currentWorkout);
+        currentWorkout = null;
+      }
+    });
 
-  return {
-    records,
-    workouts,
-    stats: {
-      totalRecords: records.length,
-      totalWorkouts: workouts.length,
-      dateRange: {
-        earliest: earliestDate,
-        latest: latestDate,
-      },
-      recordTypes: recordTypeCounts,
-    },
-  };
+    saxStream.on('error', (err) => {
+      reject(new Error(`XML parse error: ${err.message}`));
+    });
+
+    saxStream.on('end', () => {
+      if (!foundHealthData) {
+        reject(new Error('Invalid Apple Health export: Missing HealthData root element'));
+        return;
+      }
+
+      // Flush remaining batch
+      flushBatch();
+
+      if (onProgress) {
+        onProgress(totalRecords, totalRecords);
+      }
+
+      resolve({
+        records,
+        workouts,
+        stats: {
+          totalRecords,
+          totalWorkouts,
+          dateRange: { earliest: earliestDate, latest: latestDate },
+          recordTypes: recordTypeCounts,
+        },
+      });
+    });
+
+    // Stream the buffer through the SAX parser
+    const readable = new Readable();
+    readable.push(input);
+    readable.push(null);
+    readable.pipe(saxStream);
+  });
 }
 
 /**
- * Extract Apple Health export from ZIP file
- *
- * @param zipBuffer - Buffer containing the ZIP file
- * @returns XML content as string
+ * Extract Apple Health export.xml from ZIP file as a Buffer.
  */
-export async function extractHealthXMLFromZip(zipBuffer: Buffer): Promise<string> {
-  // Note: Will need to add 'adm-zip' package for ZIP extraction
-  // For now, this is a placeholder that assumes unzipped XML
+export async function extractHealthXMLFromZip(zipBuffer: Buffer): Promise<Buffer> {
   const AdmZip = (await import('adm-zip')).default;
-
   const zip = new AdmZip(zipBuffer);
   const zipEntries = zip.getEntries();
 
-  // Find export.xml in the ZIP
   const exportEntry = zipEntries.find(
     (entry) => entry.entryName.endsWith('export.xml') || entry.entryName === 'export.xml'
   );
@@ -249,29 +253,5 @@ export async function extractHealthXMLFromZip(zipBuffer: Buffer): Promise<string
     throw new Error('No export.xml found in ZIP file. Please upload a valid Apple Health export.');
   }
 
-  // Extract and return as string
-  return exportEntry.getData().toString('utf8');
-}
-
-/**
- * Validate that the XML content is a valid Apple Health export
- *
- * @param xmlContent - XML content to validate
- * @returns true if valid, throws error otherwise
- */
-export function validateAppleHealthXML(xmlContent: string): boolean {
-  // Quick validation checks
-  if (!xmlContent || typeof xmlContent !== 'string') {
-    throw new Error('Invalid XML content: empty or not a string');
-  }
-
-  if (!xmlContent.includes('<HealthData')) {
-    throw new Error('Invalid Apple Health export: Missing HealthData element');
-  }
-
-  if (!xmlContent.includes('</HealthData>')) {
-    throw new Error('Invalid Apple Health export: Incomplete or corrupted XML');
-  }
-
-  return true;
+  return exportEntry.getData();
 }

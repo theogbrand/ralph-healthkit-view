@@ -9,13 +9,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   parseAppleHealthXML,
   extractHealthXMLFromZip,
-  validateAppleHealthXML,
 } from '@/lib/parsers/xml-parser';
 import {
   mapRecordsToDatabase,
   mapWorkoutsToDatabase,
-  deduplicateRecords,
-  deduplicateWorkouts,
 } from '@/lib/parsers/data-mapper';
 import { getDb } from '@/lib/db/client';
 import { insertRecordsBatch, insertWorkoutsBatch } from '@/lib/db/queries';
@@ -31,8 +28,6 @@ interface ImportResponse {
   stats?: {
     recordsImported: number;
     workoutsImported: number;
-    recordsSkipped: number;
-    workoutsSkipped: number;
     dateRange: {
       earliest: string;
       latest: string;
@@ -84,17 +79,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<ImportRes
       );
     }
 
-    // Read file contents
+    // Read file as Buffer — never convert to string
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    // Extract XML content
-    let xmlContent: string;
+    let xmlBuffer: Buffer;
     try {
-      if (isZip) {
-        xmlContent = await extractHealthXMLFromZip(fileBuffer);
-      } else {
-        xmlContent = fileBuffer.toString('utf8');
-      }
+      xmlBuffer = isZip ? await extractHealthXMLFromZip(fileBuffer) : fileBuffer;
     } catch (error) {
       return NextResponse.json(
         {
@@ -106,71 +96,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<ImportRes
       );
     }
 
-    // Validate XML
-    try {
-      validateAppleHealthXML(xmlContent);
-    } catch (error) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Invalid Apple Health export',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-        { status: 400 }
-      );
-    }
+    // Parse XML with streaming — insert batches directly into DB
+    let recordsImported = 0;
+    let workoutsImported = 0;
 
-    // Parse XML
     let parseResult;
     try {
-      parseResult = await parseAppleHealthXML(xmlContent);
+      parseResult = await parseAppleHealthXML(xmlBuffer, {
+        batchSize: 1000,
+        onBatch: (records, workouts) => {
+          if (records.length > 0) {
+            const dbRecords = mapRecordsToDatabase(records);
+            recordsImported += insertRecordsBatch(dbRecords);
+          }
+          if (workouts.length > 0) {
+            const dbWorkouts = mapWorkoutsToDatabase(workouts);
+            workoutsImported += insertWorkoutsBatch(dbWorkouts);
+          }
+        },
+      });
     } catch (error) {
       return NextResponse.json(
         {
           success: false,
           message: 'Failed to parse XML',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-        { status: 500 }
-      );
-    }
-
-    // Map to database schema
-    const dbRecords = mapRecordsToDatabase(parseResult.records);
-    const dbWorkouts = mapWorkoutsToDatabase(parseResult.workouts);
-
-    // Deduplicate before insertion
-    const uniqueRecords = deduplicateRecords(dbRecords);
-    const uniqueWorkouts = deduplicateWorkouts(dbWorkouts);
-
-    const recordsSkipped = dbRecords.length - uniqueRecords.length;
-    const workoutsSkipped = dbWorkouts.length - uniqueWorkouts.length;
-
-    // Insert into database
-    const db = getDb();
-    let recordsImported = 0;
-    let workoutsImported = 0;
-
-    try {
-      // Use batch inserts for performance
-      const batchSize = 1000;
-
-      // Insert records in batches
-      for (let i = 0; i < uniqueRecords.length; i += batchSize) {
-        const batch = uniqueRecords.slice(i, i + batchSize);
-        recordsImported += insertRecordsBatch(batch);
-      }
-
-      // Insert workouts in batches
-      for (let i = 0; i < uniqueWorkouts.length; i += batchSize) {
-        const batch = uniqueWorkouts.slice(i, i + batchSize);
-        workoutsImported += insertWorkoutsBatch(batch);
-      }
-    } catch (error) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Failed to insert data into database',
           error: error instanceof Error ? error.message : 'Unknown error',
         },
         { status: 500 }
@@ -185,8 +134,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ImportRes
       stats: {
         recordsImported,
         workoutsImported,
-        recordsSkipped,
-        workoutsSkipped,
         dateRange: parseResult.stats.dateRange,
         processingTimeMs: processingTime,
       },

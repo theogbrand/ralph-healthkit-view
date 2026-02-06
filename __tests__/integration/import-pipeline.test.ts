@@ -11,7 +11,7 @@ vi.mock('@/lib/db/client', () => ({
   getDb: () => testDb,
 }));
 
-import { parseAppleHealthXML, validateAppleHealthXML } from '@/lib/parsers/xml-parser';
+import { parseAppleHealthXML } from '@/lib/parsers/xml-parser';
 import {
   mapRecordsToDatabase,
   mapWorkoutsToDatabase,
@@ -23,31 +23,27 @@ import { insertRecordsBatch, insertWorkoutsBatch, getSyncStatus } from '@/lib/db
 const FIXTURE_PATH = join(__dirname, '..', 'fixtures', 'sample-export.xml');
 
 describe('import pipeline integration', () => {
-  let xmlContent: string;
+  let xmlBuffer: Buffer;
 
   beforeEach(() => {
     testDb = new Database(':memory:');
     for (const migration of ALL_MIGRATIONS) {
       testDb.exec(migration);
     }
-    xmlContent = readFileSync(FIXTURE_PATH, 'utf-8');
+    xmlBuffer = readFileSync(FIXTURE_PATH);
   });
 
   afterEach(() => {
     testDb.close();
   });
 
-  it('validates sample XML fixture', () => {
-    expect(validateAppleHealthXML(xmlContent)).toBe(true);
-  });
-
-  it('rejects invalid XML', () => {
-    expect(() => validateAppleHealthXML('')).toThrow();
-    expect(() => validateAppleHealthXML('<html></html>')).toThrow();
+  it('rejects invalid XML (missing HealthData)', async () => {
+    const invalidBuffer = Buffer.from('<html></html>');
+    await expect(parseAppleHealthXML(invalidBuffer)).rejects.toThrow('Missing HealthData');
   });
 
   it('parses sample XML fixture correctly', async () => {
-    const result = await parseAppleHealthXML(xmlContent);
+    const result = await parseAppleHealthXML(xmlBuffer);
 
     expect(result.records.length).toBeGreaterThan(0);
     expect(result.workouts.length).toBe(1);
@@ -58,7 +54,7 @@ describe('import pipeline integration', () => {
   });
 
   it('parses records with correct types', async () => {
-    const result = await parseAppleHealthXML(xmlContent);
+    const result = await parseAppleHealthXML(xmlBuffer);
     const types = new Set(result.records.map((r) => r.type));
 
     expect(types.has('HKQuantityTypeIdentifierStepCount')).toBe(true);
@@ -68,7 +64,7 @@ describe('import pipeline integration', () => {
   });
 
   it('maps and deduplicates records', async () => {
-    const result = await parseAppleHealthXML(xmlContent);
+    const result = await parseAppleHealthXML(xmlBuffer);
     const dbRecords = mapRecordsToDatabase(result.records);
     const unique = deduplicateRecords(dbRecords);
 
@@ -86,7 +82,7 @@ describe('import pipeline integration', () => {
   });
 
   it('maps workouts correctly', async () => {
-    const result = await parseAppleHealthXML(xmlContent);
+    const result = await parseAppleHealthXML(xmlBuffer);
     const dbWorkouts = mapWorkoutsToDatabase(result.workouts);
     const unique = deduplicateWorkouts(dbWorkouts);
 
@@ -99,7 +95,7 @@ describe('import pipeline integration', () => {
 
   it('completes full pipeline: parse -> map -> insert -> query', async () => {
     // 1. Parse
-    const parseResult = await parseAppleHealthXML(xmlContent);
+    const parseResult = await parseAppleHealthXML(xmlBuffer);
 
     // 2. Map
     const dbRecords = mapRecordsToDatabase(parseResult.records);
@@ -124,7 +120,7 @@ describe('import pipeline integration', () => {
   });
 
   it('handles duplicate imports (re-import is idempotent)', async () => {
-    const parseResult = await parseAppleHealthXML(xmlContent);
+    const parseResult = await parseAppleHealthXML(xmlBuffer);
     const dbRecords = deduplicateRecords(mapRecordsToDatabase(parseResult.records));
     const dbWorkouts = deduplicateWorkouts(mapWorkoutsToDatabase(parseResult.workouts));
 
@@ -144,6 +140,34 @@ describe('import pipeline integration', () => {
     const status = getSyncStatus();
     expect(status.total_records).toBe(firstRecords);
     expect(status.total_workouts).toBe(firstWorkouts);
+  });
+
+  it('supports onBatch callback for streaming insertion', async () => {
+    let batchCount = 0;
+    let totalRecords = 0;
+    let totalWorkouts = 0;
+
+    const result = await parseAppleHealthXML(xmlBuffer, {
+      batchSize: 5,
+      onBatch: (records, workouts) => {
+        batchCount++;
+        totalRecords += records.length;
+        totalWorkouts += workouts.length;
+      },
+    });
+
+    // Records should be empty when onBatch is used (flushed via callback)
+    expect(result.records).toHaveLength(0);
+    expect(result.workouts).toHaveLength(0);
+
+    // But stats should be populated
+    expect(result.stats.totalRecords).toBeGreaterThan(0);
+    expect(result.stats.totalWorkouts).toBe(1);
+
+    // And batches should have been called
+    expect(batchCount).toBeGreaterThan(0);
+    expect(totalRecords).toBe(result.stats.totalRecords);
+    expect(totalWorkouts).toBe(1);
   });
 
   it('handles empty database sync status', () => {
