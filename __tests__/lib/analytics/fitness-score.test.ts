@@ -34,19 +34,26 @@ function seedRecords(
 }
 
 function seedRunningWorkouts(db: Database.Database, workouts: { date: string; duration: number; distance: number; hr: number }[]) {
-  const stmt = db.prepare(`
+  const wStmt = db.prepare(`
     INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
-    VALUES ('Running', ?, ?, 300, ?, 'test', null, ?, ?)
+    VALUES ('Running', ?, null, 300, ?, 'test', null, ?, ?)
+  `);
+  const rStmt = db.prepare(`
+    INSERT INTO records (type, readable_type, value, unit, source_name, device, start_date, end_date, created_date)
+    VALUES ('HKQuantityTypeIdentifierDistanceWalkingRunning', 'Distance', ?, 'km', 'test', null, ?, ?, ?)
   `);
   for (const w of workouts) {
-    stmt.run(w.duration, w.distance, w.hr, w.date, w.date);
+    wStmt.run(w.duration, w.hr, w.date, w.date);
+    if (w.distance > 0) {
+      rStmt.run(w.distance, w.date, w.date, w.date);
+    }
   }
 }
 
 function seedGymWorkouts(db: Database.Database, workouts: { date: string; duration: number; energy: number; hr: number }[]) {
   const stmt = db.prepare(`
     INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
-    VALUES ('Strength Training', ?, null, ?, ?, 'test', null, ?, ?)
+    VALUES ('Functional Strength Training', ?, null, ?, ?, 'test', null, ?, ?)
   `);
   for (const w of workouts) {
     stmt.run(w.duration, w.energy, w.hr, w.date, w.date);
@@ -75,7 +82,7 @@ describe('fitness-score', () => {
         { date: '2025-01-10', value: 55 },
       ]);
       seedRunningWorkouts(testDb, [
-        { date: '2025-01-10', duration: 30, distance: 5, hr: 150 },
+        { date: '2025-01-10', duration: 30/60, distance: 5, hr: 150 },
       ]);
       const score = calculateRunningScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
@@ -99,14 +106,16 @@ describe('fitness-score', () => {
     });
 
     it('scores faster pace better', () => {
+      // duration_minutes in DB is stored in hours (parser bug); code multiplies by 60
       seedRunningWorkouts(testDb, [
-        { date: '2025-01-10', duration: 25, distance: 5, hr: 150 }, // 5 min/km
+        { date: '2025-01-10', duration: 25/60, distance: 5, hr: 150 }, // 25min/5km = 5 min/km
       ]);
       const fastScore = calculateRunningScore('2024-10-01', '2025-01-15')!;
 
       testDb.exec('DELETE FROM workouts');
+      testDb.exec("DELETE FROM records WHERE type = 'HKQuantityTypeIdentifierDistanceWalkingRunning'");
       seedRunningWorkouts(testDb, [
-        { date: '2025-01-10', duration: 35, distance: 5, hr: 150 }, // 7 min/km
+        { date: '2025-01-10', duration: 35/60, distance: 5, hr: 150 }, // 35min/5km = 7 min/km
       ]);
       const slowScore = calculateRunningScore('2024-10-01', '2025-01-15')!;
 
@@ -120,8 +129,9 @@ describe('fitness-score', () => {
     });
 
     it('returns a score when gym workouts exist', () => {
+      // duration_minutes in DB is stored in hours (parser bug); code multiplies by 60
       seedGymWorkouts(testDb, [
-        { date: '2025-01-10', duration: 60, energy: 400, hr: 130 },
+        { date: '2025-01-10', duration: 60/60, energy: 400, hr: 130 },
       ]);
       const score = calculateGymScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
@@ -129,14 +139,15 @@ describe('fitness-score', () => {
     });
 
     it('scores higher intensity better', () => {
+      // duration_minutes in DB is stored in hours (parser bug); code multiplies by 60
       seedGymWorkouts(testDb, [
-        { date: '2025-01-10', duration: 60, energy: 600, hr: 140 }, // 10 kcal/min
+        { date: '2025-01-10', duration: 60/60, energy: 600, hr: 140 }, // 10 kcal/min
       ]);
       const highIntensity = calculateGymScore('2024-10-01', '2025-01-15')!;
 
       testDb.exec('DELETE FROM workouts');
       seedGymWorkouts(testDb, [
-        { date: '2025-01-10', duration: 60, energy: 180, hr: 140 }, // 3 kcal/min
+        { date: '2025-01-10', duration: 60/60, energy: 180, hr: 140 }, // 3 kcal/min
       ]);
       const lowIntensity = calculateGymScore('2024-10-01', '2025-01-15')!;
 
@@ -203,7 +214,7 @@ describe('fitness-score', () => {
         { date: '2025-01-10', value: 55 },
       ]);
       seedRunningWorkouts(testDb, [
-        { date: '2025-01-10', duration: 30, distance: 5, hr: 150 },
+        { date: '2025-01-10', duration: 30/60, distance: 5, hr: 150 },
       ]);
 
       const score = computeScoreForWindow('2024-10-01', '2025-01-15');
@@ -227,7 +238,7 @@ describe('fitness-score', () => {
   describe('edge cases', () => {
     it('handles single running workout', () => {
       seedRunningWorkouts(testDb, [
-        { date: '2025-01-15', duration: 30, distance: 5, hr: 150 },
+        { date: '2025-01-15', duration: 30/60, distance: 5, hr: 150 },
       ]);
       const score = calculateRunningScore('2024-10-01', '2025-01-15');
       expect(score).not.toBeNull();
@@ -235,19 +246,20 @@ describe('fitness-score', () => {
     });
 
     it('handles runs without distance (treadmill)', () => {
+      // No distance records seeded — simulates a treadmill run with no GPS distance
       const stmt = testDb.prepare(`
         INSERT INTO workouts (workout_type, duration_minutes, distance_km, total_energy_kcal, avg_heart_rate, source_name, device, start_date, end_date)
-        VALUES ('Running', 30, 0, 300, 150, 'test', null, '2025-01-10', '2025-01-10')
+        VALUES ('Running', ?, null, 300, 150, 'test', null, '2025-01-10', '2025-01-10')
       `);
-      stmt.run();
+      stmt.run(30/60);
       const score = calculateRunningScore('2024-10-01', '2025-01-15');
-      // Should still get a score from frequency, distance=0 excluded from pace
+      // Should still get a score from frequency, no distance records = pace excluded
       expect(score).not.toBeNull();
     });
 
     it('ignores data outside date range', () => {
       seedRunningWorkouts(testDb, [
-        { date: '2024-01-01', duration: 30, distance: 5, hr: 150 },
+        { date: '2024-01-01', duration: 30/60, distance: 5, hr: 150 },
       ]);
       const score = calculateRunningScore('2025-01-01', '2025-01-15');
       expect(score).toBeNull();

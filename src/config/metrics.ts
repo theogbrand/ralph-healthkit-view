@@ -58,7 +58,13 @@ export const SCORE_WEIGHTS = {
 };
 
 export const RUNNING_WORKOUT_TYPES = ['Running'];
-export const GYM_WORKOUT_TYPES = ['Strength Training', 'HIIT'];
+export const GYM_WORKOUT_TYPES = [
+  'Functional Strength Training',
+  'Traditional Strength Training',
+  'High Intensity Interval Training',
+  'Cross Training',
+  'Core Training',
+];
 
 export const RUNNING_SCORE_WEIGHTS = {
   resting_hr: 0.25,

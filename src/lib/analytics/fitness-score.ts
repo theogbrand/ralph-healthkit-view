@@ -34,24 +34,30 @@ export function calculateRunningScore(start: string, end: string): number | null
     weight += W.resting_hr;
   }
 
-  // Running workouts
+  // Running workouts with correlated distance from records table
   const placeholders = RUNNING_WORKOUT_TYPES.map(() => '?').join(',');
   const runWorkouts = db.prepare(`
-    SELECT duration_minutes, distance_km, avg_heart_rate
-    FROM workouts
-    WHERE workout_type IN (${placeholders})
-      AND start_date >= ? AND start_date <= ?
+    SELECT w.duration_minutes, w.avg_heart_rate,
+      (SELECT SUM(r.value) FROM records r
+       WHERE r.type = 'HKQuantityTypeIdentifierDistanceWalkingRunning'
+       AND r.start_date >= w.start_date AND r.start_date <= w.end_date) as computed_distance_km
+    FROM workouts w
+    WHERE w.workout_type IN (${placeholders})
+      AND w.start_date >= ? AND w.start_date <= ?
   `).all(...RUNNING_WORKOUT_TYPES, start, end) as {
     duration_minutes: number;
-    distance_km: number | null;
+    computed_distance_km: number | null;
     avg_heart_rate: number | null;
   }[];
 
+  // duration_minutes is stored in hours due to parser bug; multiply by 60 for actual minutes
+  const DURATION_CORRECTION = 60;
+
   if (runWorkouts.length > 0) {
     // Pace: avg duration/distance for runs with valid distance
-    const runsWithDistance = runWorkouts.filter(w => w.distance_km && w.distance_km > 0);
+    const runsWithDistance = runWorkouts.filter(w => w.computed_distance_km && w.computed_distance_km > 0);
     if (runsWithDistance.length > 0) {
-      const avgPace = runsWithDistance.reduce((s, w) => s + w.duration_minutes / w.distance_km!, 0) / runsWithDistance.length;
+      const avgPace = runsWithDistance.reduce((s, w) => s + (w.duration_minutes * DURATION_CORRECTION) / w.computed_distance_km!, 0) / runsWithDistance.length;
       // Pace scoring: 3.5 min/km = 100, 8 min/km = 0
       total += Math.min(100, Math.max(0, ((8 - avgPace) / 4.5) * 100)) * W.pace;
       weight += W.pace;
@@ -74,8 +80,8 @@ export function calculateRunningScore(start: string, end: string): number | null
     total += Math.min(100, (runsPerWeek / 4) * 100) * W.frequency;
     weight += W.frequency;
 
-    // Weekly Distance
-    const totalDist = runWorkouts.reduce((s, w) => s + (w.distance_km ?? 0), 0);
+    // Weekly Distance (from correlated records)
+    const totalDist = runWorkouts.reduce((s, w) => s + (w.computed_distance_km ?? 0), 0);
     const weeklyDist = totalDist / weeks;
     // 40+ km/week = 100
     total += Math.min(100, (weeklyDist / 40) * 100) * W.distance;
@@ -113,6 +119,9 @@ export function calculateGymScore(start: string, end: string): number | null {
 
   if (gymWorkouts.length === 0) return null;
 
+  // duration_minutes is stored in hours due to parser bug; multiply by 60 for actual minutes
+  const DURATION_CORRECTION = 60;
+
   const days = Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000));
   const weeks = Math.max(1, days / 7);
 
@@ -121,10 +130,10 @@ export function calculateGymScore(start: string, end: string): number | null {
   total += Math.min(100, (sessionsPerWeek / 4) * 100) * W.frequency;
   weight += W.frequency;
 
-  // Intensity (kcal/min)
+  // Intensity (kcal/min) — correct duration to actual minutes
   const withEnergy = gymWorkouts.filter(w => w.total_energy_kcal && w.duration_minutes > 0);
   if (withEnergy.length > 0) {
-    const avgIntensity = withEnergy.reduce((s, w) => s + w.total_energy_kcal! / w.duration_minutes, 0) / withEnergy.length;
+    const avgIntensity = withEnergy.reduce((s, w) => s + w.total_energy_kcal! / (w.duration_minutes * DURATION_CORRECTION), 0) / withEnergy.length;
     // 10+ kcal/min = 100
     total += Math.min(100, (avgIntensity / 10) * 100) * W.intensity;
     weight += W.intensity;
@@ -139,8 +148,8 @@ export function calculateGymScore(start: string, end: string): number | null {
     weight += W.gym_hr;
   }
 
-  // Duration
-  const avgDuration = gymWorkouts.reduce((s, w) => s + w.duration_minutes, 0) / gymWorkouts.length;
+  // Duration — correct to actual minutes
+  const avgDuration = gymWorkouts.reduce((s, w) => s + w.duration_minutes * DURATION_CORRECTION, 0) / gymWorkouts.length;
   // 60+ min = 100
   total += Math.min(100, (avgDuration / 60) * 100) * W.duration;
   weight += W.duration;
@@ -247,18 +256,21 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
     GROUP BY DATE(start_date)
   `).all(extStartStr, endDate) as { date: string; avg_value: number }[];
 
-  // Batch fetch: Running workouts
+  // Batch fetch: Running workouts with correlated distance from records table
   const runPlaceholders = RUNNING_WORKOUT_TYPES.map(() => '?').join(',');
   const runningWorkouts = db.prepare(`
-    SELECT DATE(start_date) as date, duration_minutes, distance_km, avg_heart_rate
-    FROM workouts
-    WHERE workout_type IN (${runPlaceholders})
-      AND start_date >= ? AND start_date <= ?
-    ORDER BY start_date ASC
+    SELECT DATE(w.start_date) as date, w.duration_minutes, w.avg_heart_rate,
+      (SELECT SUM(r.value) FROM records r
+       WHERE r.type = 'HKQuantityTypeIdentifierDistanceWalkingRunning'
+       AND r.start_date >= w.start_date AND r.start_date <= w.end_date) as computed_distance_km
+    FROM workouts w
+    WHERE w.workout_type IN (${runPlaceholders})
+      AND w.start_date >= ? AND w.start_date <= ?
+    ORDER BY w.start_date ASC
   `).all(...RUNNING_WORKOUT_TYPES, extStartStr, endDate) as {
     date: string;
     duration_minutes: number;
-    distance_km: number | null;
+    computed_distance_km: number | null;
     avg_heart_rate: number | null;
   }[];
 
@@ -295,6 +307,9 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
     return vals;
   }
 
+  // duration_minutes is stored in hours due to parser bug; multiply by 60 for actual minutes
+  const DURATION_CORRECTION = 60;
+
   function scoreRunning(ws: string, we: string): number | null {
     let total = 0, weight = 0;
     const W = RUNNING_SCORE_WEIGHTS;
@@ -310,9 +325,9 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
     // Running workouts in window
     const runs = runningWorkouts.filter(w => w.date >= ws && w.date <= we);
     if (runs.length > 0) {
-      const runsWithDist = runs.filter(w => w.distance_km && w.distance_km > 0);
+      const runsWithDist = runs.filter(w => w.computed_distance_km && w.computed_distance_km > 0);
       if (runsWithDist.length > 0) {
-        const avgPace = runsWithDist.reduce((s, w) => s + w.duration_minutes / w.distance_km!, 0) / runsWithDist.length;
+        const avgPace = runsWithDist.reduce((s, w) => s + (w.duration_minutes * DURATION_CORRECTION) / w.computed_distance_km!, 0) / runsWithDist.length;
         total += Math.min(100, Math.max(0, ((8 - avgPace) / 4.5) * 100)) * W.pace;
         weight += W.pace;
       }
@@ -329,7 +344,7 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
       total += Math.min(100, (runs.length / weeks / 4) * 100) * W.frequency;
       weight += W.frequency;
 
-      const totalDist = runs.reduce((s, w) => s + (w.distance_km ?? 0), 0);
+      const totalDist = runs.reduce((s, w) => s + (w.computed_distance_km ?? 0), 0);
       total += Math.min(100, (totalDist / weeks / 40) * 100) * W.distance;
       weight += W.distance;
     }
@@ -352,7 +367,7 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
 
     const withEnergy = gyms.filter(w => w.total_energy_kcal && w.duration_minutes > 0);
     if (withEnergy.length > 0) {
-      const avgIntensity = withEnergy.reduce((s, w) => s + w.total_energy_kcal! / w.duration_minutes, 0) / withEnergy.length;
+      const avgIntensity = withEnergy.reduce((s, w) => s + w.total_energy_kcal! / (w.duration_minutes * DURATION_CORRECTION), 0) / withEnergy.length;
       total += Math.min(100, (avgIntensity / 10) * 100) * W.intensity;
       weight += W.intensity;
     }
@@ -364,7 +379,7 @@ export function computeFitnessScoresForRange(startDate: string, endDate: string)
       weight += W.gym_hr;
     }
 
-    const avgDuration = gyms.reduce((s, w) => s + w.duration_minutes, 0) / gyms.length;
+    const avgDuration = gyms.reduce((s, w) => s + w.duration_minutes * DURATION_CORRECTION, 0) / gyms.length;
     total += Math.min(100, (avgDuration / 60) * 100) * W.duration;
     weight += W.duration;
 
