@@ -3,13 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import type { DashboardData, DateRange } from '@/types/analytics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FitnessScore } from '@/components/charts/FitnessScore';
-import { MetricCard } from '@/components/charts/MetricCard';
-import { ProgressChart } from '@/components/charts/ProgressChart';
-import { TrendChart } from '@/components/charts/TrendChart';
+import { Overview } from '@/components/dashboard';
 import { timeAgo } from '@/lib/utils/date-helpers';
 
 type ApiResponse = DashboardData & {
@@ -123,63 +120,11 @@ export default function Home() {
 
         {/* Dashboard Content */}
         {!loading && !error && hasData && data && (
-          <div className="space-y-8">
-            {/* Fitness Score */}
-            <section>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Overall Fitness Score</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center">
-                  <FitnessScore score={data.overall_score} trend={data.overall_trend} />
-                </CardContent>
-              </Card>
-            </section>
-
-            {/* Category Metric Cards */}
-            <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {(Object.entries(data.categories) as [string, typeof data.categories.cardio][]).map(
-                ([key, cat]) => (
-                  <MetricCard
-                    key={key}
-                    title={cat.name}
-                    value={cat.score}
-                    unit="score"
-                    trend={cat.trend}
-                    sparklineData={cat.metrics[0]?.sparkline_data}
-                  />
-                )
-              )}
-            </section>
-
-            {/* Category Breakdown */}
-            <section>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProgressChart categories={data.categories} />
-                </CardContent>
-              </Card>
-            </section>
-
-            {/* Score Trend */}
-            {data.score_history.length > 0 && (
-              <section>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Score Trend</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <TrendChart data={data.score_history} dateRange={range} color="#3b82f6" />
-                  </CardContent>
-                </Card>
-              </section>
-            )}
+          <>
+            <Overview data={data} dateRange={range} />
 
             {/* Sync Status Footer */}
-            <section>
+            <section className="mt-8">
               <Card>
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="text-sm text-muted-foreground">
@@ -191,7 +136,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             </section>
-          </div>
+          </>
         )}
       </main>
     </div>
