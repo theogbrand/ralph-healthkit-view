@@ -139,13 +139,26 @@ export async function parseAppleHealthXML(
 
         case 'Record': {
           const type = attrs.type;
-          const value = parseFloat(attrs.value);
-          const unit = attrs.unit;
           const sourceName = attrs.sourceName;
           const startDate = attrs.startDate;
           const endDate = attrs.endDate;
 
-          if (!type || isNaN(value) || !startDate || !endDate) break;
+          if (!type || !startDate || !endDate) break;
+
+          // Category-type records (e.g. SleepAnalysis) have non-numeric values.
+          // For sleep, compute duration in hours from start/end dates.
+          let value: number;
+          let unit: string;
+          if (type.startsWith('HKCategoryTypeIdentifier')) {
+            const durationMs = new Date(endDate).getTime() - new Date(startDate).getTime();
+            value = durationMs / (1000 * 60 * 60); // hours
+            unit = 'hr';
+            if (isNaN(value) || value <= 0) break;
+          } else {
+            value = parseFloat(attrs.value);
+            unit = attrs.unit;
+            if (isNaN(value)) break;
+          }
 
           addRecord({
             type,
