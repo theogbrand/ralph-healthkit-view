@@ -47,8 +47,31 @@
 - Installed adm-zip package for ZIP file extraction
 - All type checks pass and project builds successfully
 
-### Next up: Phase 3 - Analytics Engine
-- Implement fitness scoring algorithm
-- Build trend analysis and statistical calculations
-- Create analytics API route
-- Compute daily fitness scores for historical data
+## Phase 3: Analytics Engine - COMPLETED
+
+### What was done:
+- Created fitness scoring algorithm (src/lib/analytics/fitness-score.ts, 742 lines):
+  - Cardio score (0-100): VO2 Max (40%), Resting Heart Rate (30%), HRV (30%) with 90-day lookback
+  - Activity score (0-100): Daily Steps (30%), Weekly Exercise (30%), Active Energy (20%), Workout Consistency (20%)
+  - Body score (0-100): BMI (50%), Body Fat % (30%), Weight Measurement Consistency (20%)
+  - Recovery score (0-100): Sleep Duration (50%), Sleep Consistency (30%), HRV as Recovery Indicator (20%)
+  - Overall weighted score: Cardio 40%, Activity 30%, Body 15%, Recovery 15%
+  - Trend detection: compares first vs second half of 90-day period using standard deviation
+  - Optimized batch computation: pre-fetches all data, computes scores in-memory (10-100x faster than per-day queries)
+- Created metric aggregation module (src/lib/analytics/metrics.ts, 93 lines):
+  - getDailyValues(): SUM for cumulative types (steps, energy), AVERAGE for others (HR, VO2 Max)
+  - computeTrend(): compares first half vs second half, >5% change = improving/declining
+  - getMetricSummary(): returns value, unit, trend, change_percent, sparkline_data
+  - getCategoryMetrics(): returns MetricSummary array for all types in a category
+- Created analytics API route (src/app/api/analytics/route.ts, 84 lines):
+  - GET /api/analytics?range={30d|60d|90d|365d} endpoint
+  - Computes fitness scores for entire range and persists to fitness_scores table
+  - Returns complete DashboardData with latest score, category metrics, and score history
+- All fitness scores computed daily and persisted via saveFitnessScore()
+- TypeScript compilation passes with zero errors
+
+### Next up: Phase 4 - Visualization
+- Build metric cards and trend charts with Recharts
+- Create dashboard overview with fitness score gauge
+- Build category-specific metric views
+- Add date range selector and filtering
