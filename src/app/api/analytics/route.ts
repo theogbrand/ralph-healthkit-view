@@ -3,7 +3,7 @@ import type { DashboardData, DateRange } from '@/types/analytics';
 import { getDateRangeBounds } from '@/lib/utils/date-helpers';
 import { computeFitnessScoresForRange } from '@/lib/analytics/fitness-score';
 import { getCategoryMetrics } from '@/lib/analytics/metrics';
-import { getLatestFitnessScore, getSyncStatus } from '@/lib/db/queries';
+import { saveFitnessScore, getLatestFitnessScore, getSyncStatus } from '@/lib/db/queries';
 
 export const runtime = 'nodejs';
 
@@ -19,8 +19,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const { start, end } = getDateRangeBounds(range);
 
-    // Compute scores for the range
+    // Compute scores for the range and persist them
     const scores = computeFitnessScoresForRange(start, end);
+    for (const score of scores) {
+      saveFitnessScore(score);
+    }
     const latest = getLatestFitnessScore();
     const sync = getSyncStatus();
 
