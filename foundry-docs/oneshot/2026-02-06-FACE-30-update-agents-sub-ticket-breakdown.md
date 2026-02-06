@@ -1,4 +1,4 @@
-# Oneshot: Update AGENTS.md to instruct agent to break down single ticket into multiple sub-tickets when task involves multiple phases
+# Oneshot: Add CLAUDE.md to instruct Claude Code agent to break down single ticket into multiple sub-tickets when task involves multiple phases
 
 **Issue**: FACE-30
 **Date**: 2026-02-06
@@ -6,23 +6,29 @@
 
 ## What Was Done
 
-Updated agent prompt files to prevent the FACE-29 problem where a single agent implemented all 6 phases in one context window, causing context exhaustion and degraded quality.
+Created project-specific instructions in `CLAUDE.md` to guide Claude Code agents on handling multi-phase implementation plans. This prevents the FACE-29 problem where a single agent implemented all 6 phases in one context window, causing context exhaustion and degraded quality.
 
-Two key changes:
-1. **Plan worker**: Made sub-issue creation mandatory for any plan with 2+ phases (previously optional, only recommended for >1000 LOC). Each phase now becomes a separate Linear sub-issue.
-2. **Implement worker**: Added Step 1.5 "Determine Your Scope" that instructs agents to check if they're working on a sub-issue and only implement the phases assigned to them.
+Key guidance provided:
+1. **Planning Phase**: Mandate sub-issue creation for any plan with 2+ phases (each phase becomes a separate Linear sub-issue)
+2. **Implementation Phase**: Instruct agents to check if they're working on a sub-issue and only implement the assigned phase(s)
 
 ## Files Changed
 
-- `.foundry/prompts/agent2-worker-plan.md` - Rewrote Step 4.5 to mandate sub-issues for multi-phase plans
-- `.foundry/prompts/agent2-worker-implement.md` - Added Step 1.5 for sub-issue scope checking, renamed Step 3
+- `CLAUDE.md` - Created project-specific instructions for Claude Code agents on multi-phase plan handling
+
+## Approach
+
+Instead of modifying Foundry's internal agent prompts (which would require changes to the Foundry system itself), this solution uses Claude Code's built-in support for project-specific instructions via `CLAUDE.md`. This file is automatically read by Claude Code when working in this repository, providing context-aware guidance without modifying the underlying agent infrastructure.
 
 ## Verification
 
-- No code changes — prompt/documentation only
-- Existing Agent 3 (`agent3-linear-writer.md`) already handles sub-issue creation in Linear
+- No code changes — documentation/configuration only
+- Claude Code will automatically read and apply these instructions when working in this repository
+- Future multi-phase plans will be split into sub-issues per the guidance
 
 ## Notes
 
-- The existing `sub_issues` WORK_RESULT format and Agent 3's sub-issue creation logic were already in place — only the triggering criteria and implementation scoping were missing
-- This change means a 6-phase plan like FACE-29 would now produce 6 sub-issues, each implemented by a separate agent with a fresh context window
+- `CLAUDE.md` is a standard Claude Code feature for project-specific instructions
+- This approach is more maintainable than modifying Foundry agent prompts
+- The guidance specifically addresses the workflow of splitting multi-phase plans into multiple Linear tickets
+- A 6-phase plan like FACE-29 would now produce 6 sub-issues, each implemented by a separate agent with a fresh context window
