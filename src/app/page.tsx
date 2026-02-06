@@ -11,6 +11,7 @@ import { timeAgo } from '@/lib/utils/date-helpers';
 
 type ApiResponse = DashboardData & {
   score_history: Array<{ date: string; value: number }>;
+  total_records: number;
 };
 
 const RANGES: { value: DateRange; label: string }[] = [
@@ -45,7 +46,7 @@ export default function Home() {
     fetchData(range);
   }, [range, fetchData]);
 
-  const hasData = data && data.overall_score !== null;
+  const hasData = data && (data.overall_score !== null || data.total_records > 0);
 
   return (
     <div className="min-h-screen bg-background">

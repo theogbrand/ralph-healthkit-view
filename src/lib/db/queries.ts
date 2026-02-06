@@ -145,7 +145,7 @@ export function getFitnessScores(startDate: string, endDate: string): FitnessSco
 export function getLatestFitnessScore(): FitnessScore | undefined {
   const db = getDb();
   return db.prepare(`
-    SELECT * FROM fitness_scores ORDER BY date DESC LIMIT 1
+    SELECT * FROM fitness_scores WHERE overall_score IS NOT NULL ORDER BY date DESC LIMIT 1
   `).get() as FitnessScore | undefined;
 }
 

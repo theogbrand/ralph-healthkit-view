@@ -431,6 +431,159 @@ export function computeFitnessScore(date: string): FitnessScore {
 }
 
 /**
+ * Compute a single fitness score for the entire given window (start to end).
+ * Unlike the per-date functions which always look back 90 days, this uses
+ * exactly the date bounds provided — so "30d" produces a 30-day score.
+ */
+export function computeScoreForWindow(startDate: string, endDate: string): FitnessScore {
+  const cardio = calculateCardioScoreForWindow(startDate, endDate);
+  const activity = calculateActivityScoreForWindow(startDate, endDate);
+  const body = calculateBodyScoreForWindow(startDate, endDate);
+  const recovery = calculateRecoveryScoreForWindow(startDate, endDate);
+  const overall = calculateOverallScore(cardio, activity, body, recovery);
+
+  const db = getDb();
+  const historicalScores = db.prepare(`
+    SELECT overall_score
+    FROM fitness_scores
+    WHERE date <= ?
+    ORDER BY date DESC
+    LIMIT 30
+  `).all(endDate) as { overall_score: number | null }[];
+  const trend = detectTrend([...historicalScores.map(s => s.overall_score), overall]);
+
+  return {
+    date: endDate,
+    cardio_score: cardio,
+    activity_score: activity,
+    body_score: body,
+    recovery_score: recovery,
+    overall_score: overall,
+    trend_direction: trend,
+    computed_at: new Date().toISOString(),
+  };
+}
+
+function queryAvg(type: string, start: string, end: string): number | null {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT AVG(value) as v FROM records WHERE type = ? AND start_date >= ? AND start_date <= ?
+  `).get(type, start, end) as { v: number | null };
+  return row.v;
+}
+
+function queryDailyAvg(type: string, start: string, end: string): number | null {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT AVG(daily_total) as v FROM (
+      SELECT SUM(value) as daily_total FROM records
+      WHERE type = ? AND start_date >= ? AND start_date <= ?
+      GROUP BY DATE(start_date)
+    )
+  `).get(type, start, end) as { v: number | null };
+  return row.v;
+}
+
+function calculateCardioScoreForWindow(start: string, end: string): number | null {
+  let total = 0, weight = 0;
+  const vo2 = queryAvg('HKQuantityTypeIdentifierVO2Max', start, end);
+  if (vo2) { total += Math.min(100, Math.max(0, ((vo2 - 25) / 30) * 100)) * 0.4; weight += 0.4; }
+  const rhr = queryAvg('HKQuantityTypeIdentifierRestingHeartRate', start, end);
+  if (rhr) { total += Math.min(100, Math.max(0, ((100 - rhr) / 40) * 100)) * 0.3; weight += 0.3; }
+  const hrv = queryAvg('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', start, end);
+  if (hrv) { total += Math.min(100, Math.max(0, ((hrv - 20) / 80) * 100)) * 0.3; weight += 0.3; }
+  return weight === 0 ? null : Math.round((total / weight) * 100) / 100;
+}
+
+function calculateActivityScoreForWindow(start: string, end: string): number | null {
+  const db = getDb();
+  let total = 0, weight = 0;
+  const avgSteps = queryDailyAvg('HKQuantityTypeIdentifierStepCount', start, end);
+  if (avgSteps) { total += Math.min(100, (avgSteps / 10000) * 100) * 0.3; weight += 0.3; }
+
+  const exerciseRow = db.prepare(`
+    SELECT AVG(weekly_total) as v FROM (
+      SELECT strftime('%Y-%W', start_date) as week, SUM(value) as weekly_total
+      FROM records WHERE type = 'HKQuantityTypeIdentifierAppleExerciseTime'
+        AND start_date >= ? AND start_date <= ?
+      GROUP BY strftime('%Y-%W', start_date)
+    )
+  `).get(start, end) as { v: number | null };
+  if (exerciseRow.v) { total += Math.min(100, (exerciseRow.v / 150) * 100) * 0.3; weight += 0.3; }
+
+  const avgEnergy = queryDailyAvg('HKQuantityTypeIdentifierActiveEnergyBurned', start, end);
+  if (avgEnergy) { total += Math.min(100, (avgEnergy / 500) * 100) * 0.2; weight += 0.2; }
+
+  const days = Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000));
+  const workoutRow = db.prepare(`
+    SELECT COUNT(DISTINCT DATE(start_date)) as d FROM workouts WHERE start_date >= ? AND start_date <= ?
+  `).get(start, end) as { d: number };
+  if (workoutRow.d > 0) {
+    total += Math.min(100, ((workoutRow.d / days) / (4 / 7)) * 100) * 0.2;
+    weight += 0.2;
+  }
+  return weight === 0 ? null : Math.round((total / weight) * 100) / 100;
+}
+
+function calculateBodyScoreForWindow(start: string, end: string): number | null {
+  const db = getDb();
+  let total = 0, weight = 0;
+  const bmi = queryAvg('HKQuantityTypeIdentifierBodyMassIndex', start, end);
+  if (bmi) {
+    let s: number;
+    if (bmi >= 18.5 && bmi <= 24.9) s = 100;
+    else if (bmi < 18.5) s = Math.max(0, 100 - ((18.5 - bmi) / 3) * 100);
+    else s = Math.max(0, 100 - ((bmi - 24.9) / 10) * 100);
+    total += s * 0.5; weight += 0.5;
+  }
+  const fat = queryAvg('HKQuantityTypeIdentifierBodyFatPercentage', start, end);
+  if (fat) {
+    let s: number;
+    if (fat >= 14 && fat <= 24) s = 100;
+    else if (fat < 14) s = Math.max(0, 100 - ((14 - fat) / 8) * 100);
+    else s = Math.max(0, 100 - ((fat - 24) / 16) * 100);
+    total += s * 0.3; weight += 0.3;
+  }
+  const days = Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000));
+  const wRow = db.prepare(`
+    SELECT COUNT(DISTINCT DATE(start_date)) as d FROM records
+    WHERE type = 'HKQuantityTypeIdentifierBodyMass' AND start_date >= ? AND start_date <= ?
+  `).get(start, end) as { d: number };
+  if (wRow.d > 0) {
+    total += Math.min(100, ((wRow.d / days) / (1 / 7)) * 100) * 0.2;
+    weight += 0.2;
+  }
+  return weight === 0 ? null : Math.round((total / weight) * 100) / 100;
+}
+
+function calculateRecoveryScoreForWindow(start: string, end: string): number | null {
+  const db = getDb();
+  let total = 0, weight = 0;
+  const sleepRows = db.prepare(`
+    SELECT SUM(value) as daily_sleep FROM records
+    WHERE type = 'HKCategoryTypeIdentifierSleepAnalysis' AND start_date >= ? AND start_date <= ?
+    GROUP BY DATE(start_date)
+  `).all(start, end) as { daily_sleep: number }[];
+  const sleepValues = sleepRows.map(r => r.daily_sleep);
+  const avgHours = sleepValues.length > 0 ? sleepValues.reduce((a, b) => a + b, 0) / sleepValues.length : null;
+  if (avgHours) {
+    let s: number;
+    if (avgHours >= 7 && avgHours <= 9) s = 100;
+    else if (avgHours < 7) s = Math.max(0, 100 - ((7 - avgHours) / 3) * 100);
+    else s = Math.max(0, 100 - ((avgHours - 9) / 3) * 100);
+    total += s * 0.5; weight += 0.5;
+  }
+  if (sleepValues.length > 1 && avgHours !== null) {
+    const sd = Math.sqrt(sleepValues.reduce((sum, v) => sum + (v - avgHours) ** 2, 0) / sleepValues.length);
+    total += Math.max(0, 100 - (sd / 2) * 100) * 0.3;
+    weight += 0.3;
+  }
+  const hrv = queryAvg('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', start, end);
+  if (hrv) { total += Math.min(100, (hrv / 80) * 100) * 0.2; weight += 0.2; }
+  return weight === 0 ? null : Math.round((total / weight) * 100) / 100;
+}
+
+/**
  * Compute fitness scores for a date range using batched queries.
  * Pre-fetches all needed data, then computes scores in memory.
  */

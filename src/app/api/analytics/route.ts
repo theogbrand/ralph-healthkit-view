@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { getDateRangeBounds } from '@/lib/utils/date-helpers';
-import { computeFitnessScoresForRange } from '@/lib/analytics/fitness-score';
+import { computeFitnessScoresForRange, computeScoreForWindow } from '@/lib/analytics/fitness-score';
 import { getCategoryMetrics } from '@/lib/analytics/metrics';
-import { saveFitnessScore, getLatestFitnessScore, getSyncStatus } from '@/lib/db/queries';
+import { saveFitnessScore, getSyncStatus } from '@/lib/db/queries';
 
 export const runtime = 'nodejs';
 
@@ -19,13 +19,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const { start, end } = getDateRangeBounds(range);
 
-    // Compute scores for the range and persist them
-    const scores = computeFitnessScoresForRange(start, end);
-    for (const score of scores) {
-      saveFitnessScore(score);
-    }
-    const latest = getLatestFitnessScore();
     const sync = getSyncStatus();
+
+    // Skip expensive score computation when there are no records
+    const scores = sync.total_records > 0
+      ? computeFitnessScoresForRange(start, end)
+      : [];
+
+    // Only persist scores that have actual data
+    for (const score of scores) {
+      if (score.overall_score !== null) {
+        saveFitnessScore(score);
+      }
+    }
+
+    // Compute a single score using data from the selected range
+    const latest = sync.total_records > 0 ? computeScoreForWindow(start, end) : null;
 
     // Build category data using the metrics module
     const cardioMetrics = getCategoryMetrics('cardio', range);
@@ -33,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const bodyMetrics = getCategoryMetrics('body', range);
     const recoveryMetrics = getCategoryMetrics('recovery', range);
 
-    // Determine overall trend from recent scores
+    // Determine overall trend from scores in this range
     const overallTrend = latest?.trend_direction ?? 'stable';
 
     const data: DashboardData = {
@@ -68,13 +77,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       last_sync: sync.last_sync,
     };
 
-    // Include score history for trend chart
-    const score_history = scores.map((s) => ({
-      date: s.date,
-      value: s.overall_score ?? 0,
-    }));
+    // Include score history for trend chart (exclude days with no data)
+    const score_history = scores
+      .filter((s) => s.overall_score !== null)
+      .map((s) => ({
+        date: s.date,
+        value: s.overall_score!,
+      }));
 
-    return NextResponse.json({ ...data, score_history });
+    return NextResponse.json({ ...data, score_history, total_records: sync.total_records });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
