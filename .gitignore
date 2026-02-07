@@ -46,3 +46,4 @@ data/*.db-wal
 data/*.db-shm
 # Foundry runtime data
 .foundry/
+data/device-exported
