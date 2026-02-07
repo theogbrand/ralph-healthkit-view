@@ -36,8 +36,16 @@
  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Apple Watch" unit="hr" creationDate="2025-01-10 07:00:00 -0500" startDate="2025-01-09 23:00:00 -0500" endDate="2025-01-10 07:00:00 -0500" value="8"/>
  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Apple Watch" unit="hr" creationDate="2025-01-11 07:00:00 -0500" startDate="2025-01-10 23:30:00 -0500" endDate="2025-01-11 07:00:00 -0500" value="7.5"/>
 
- <!-- Workout -->
+ <!-- Workout with top-level attributes + WorkoutStatistics (WorkoutStatistics should override) -->
  <Workout workoutActivityType="HKWorkoutActivityTypeRunning" duration="1800" startDate="2025-01-10 17:00:00 -0500" endDate="2025-01-10 17:30:00 -0500" sourceName="Apple Watch" totalDistance="5.2" totalEnergyBurned="320">
    <WorkoutStatistics type="HKQuantityTypeIdentifierHeartRate" average="145"/>
+   <WorkoutStatistics type="HKQuantityTypeIdentifierActiveEnergyBurned" sum="325.5" unit="kcal"/>
+   <WorkoutStatistics type="HKQuantityTypeIdentifierDistanceWalkingRunning" sum="5.47" unit="km"/>
+ </Workout>
+
+ <!-- Workout with only WorkoutStatistics (no top-level energy/distance attributes, simulating newer export format) -->
+ <Workout workoutActivityType="HKWorkoutActivityTypeFunctionalStrengthTraining" duration="3600" startDate="2025-01-11 08:00:00 -0500" endDate="2025-01-11 09:00:00 -0500" sourceName="Apple Watch">
+   <WorkoutStatistics type="HKQuantityTypeIdentifierHeartRate" average="132"/>
+   <WorkoutStatistics type="HKQuantityTypeIdentifierActiveEnergyBurned" sum="383" unit="kcal"/>
  </Workout>
 </HealthData>

@@ -46,9 +46,9 @@ describe('import pipeline integration', () => {
     const result = await parseAppleHealthXML(xmlBuffer);
 
     expect(result.records.length).toBeGreaterThan(0);
-    expect(result.workouts.length).toBe(1);
+    expect(result.workouts.length).toBe(2);
     expect(result.stats.totalRecords).toBe(result.records.length);
-    expect(result.stats.totalWorkouts).toBe(1);
+    expect(result.stats.totalWorkouts).toBe(2);
     expect(result.stats.dateRange.earliest).toBeTruthy();
     expect(result.stats.dateRange.latest).toBeTruthy();
   });
@@ -86,11 +86,22 @@ describe('import pipeline integration', () => {
     const dbWorkouts = mapWorkoutsToDatabase(result.workouts);
     const unique = deduplicateWorkouts(dbWorkouts);
 
-    expect(unique.length).toBe(1);
-    const workout = unique[0];
-    expect(workout.workout_type).toBeTruthy();
-    expect(workout.duration_minutes).toBeGreaterThan(0);
-    expect(workout.start_date).toBeTruthy();
+    expect(unique.length).toBe(2);
+
+    // Running workout — WorkoutStatistics should override top-level attributes
+    const running = unique.find(w => w.workout_type === 'Running')!;
+    expect(running).toBeDefined();
+    expect(running.duration_minutes).toBeGreaterThan(0);
+    expect(running.total_energy_kcal).toBeCloseTo(325.5);
+    expect(running.distance_km).toBeCloseTo(5.47);
+    expect(running.avg_heart_rate).toBe(145);
+
+    // Gym workout — energy only from WorkoutStatistics (no top-level attributes)
+    const gym = unique.find(w => w.workout_type === 'Functional Strength Training')!;
+    expect(gym).toBeDefined();
+    expect(gym.total_energy_kcal).toBeCloseTo(383);
+    expect(gym.distance_km).toBeNull();
+    expect(gym.avg_heart_rate).toBe(132);
   });
 
   it('completes full pipeline: parse -> map -> insert -> query', async () => {
@@ -110,7 +121,7 @@ describe('import pipeline integration', () => {
     const workoutsInserted = insertWorkoutsBatch(uniqueWorkouts);
 
     expect(recordsInserted).toBeGreaterThan(0);
-    expect(workoutsInserted).toBe(1);
+    expect(workoutsInserted).toBe(2);
 
     // 5. Query & verify
     const status = getSyncStatus();
@@ -162,12 +173,12 @@ describe('import pipeline integration', () => {
 
     // But stats should be populated
     expect(result.stats.totalRecords).toBeGreaterThan(0);
-    expect(result.stats.totalWorkouts).toBe(1);
+    expect(result.stats.totalWorkouts).toBe(2);
 
     // And batches should have been called
     expect(batchCount).toBeGreaterThan(0);
     expect(totalRecords).toBe(result.stats.totalRecords);
-    expect(totalWorkouts).toBe(1);
+    expect(totalWorkouts).toBe(2);
   });
 
   it('handles empty database sync status', () => {

@@ -197,12 +197,16 @@ export async function parseAppleHealthXML(
         }
 
         case 'WorkoutStatistics': {
-          if (
-            currentWorkout &&
-            attrs.type === 'HKQuantityTypeIdentifierHeartRate' &&
-            attrs.average
-          ) {
+          if (!currentWorkout) break;
+
+          if (attrs.type === 'HKQuantityTypeIdentifierHeartRate' && attrs.average) {
             currentWorkout.avgHeartRate = parseFloat(attrs.average);
+          }
+          if (attrs.type === 'HKQuantityTypeIdentifierActiveEnergyBurned' && attrs.sum) {
+            currentWorkout.totalEnergyKcal = parseFloat(attrs.sum);
+          }
+          if (attrs.type === 'HKQuantityTypeIdentifierDistanceWalkingRunning' && attrs.sum) {
+            currentWorkout.distanceKm = parseFloat(attrs.sum);
           }
           break;
         }
