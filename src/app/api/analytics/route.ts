@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { getDateRangeBounds } from '@/lib/utils/date-helpers';
 import { computeFitnessScoresForRange, computeScoreForWindow } from '@/lib/analytics/fitness-score';
-import { getRunningMetrics, getGymMetrics } from '@/lib/analytics/metrics';
+import { getRunningMetrics, getGymMetrics, getRunningWeekComparison, getGymWeekComparison } from '@/lib/analytics/metrics';
 import { saveFitnessScore, getSyncStatus } from '@/lib/db/queries';
 
 export const runtime = 'nodejs';
@@ -39,6 +39,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Build category data using workout-based metrics
     const runningMetrics = getRunningMetrics(range);
     const gymMetrics = getGymMetrics(range);
+    const runningWeekComparison = getRunningWeekComparison();
+    const gymWeekComparison = getGymWeekComparison();
 
     const overallTrend = latest?.trend_direction ?? 'stable';
 
@@ -51,12 +53,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           score: latest?.running_score ?? null,
           trend: runningMetrics[0]?.trend ?? 'stable',
           metrics: runningMetrics,
+          weekComparison: runningWeekComparison,
         },
         gym: {
           name: 'Gym',
           score: latest?.gym_score ?? null,
           trend: gymMetrics[0]?.trend ?? 'stable',
           metrics: gymMetrics,
+          weekComparison: gymWeekComparison,
         },
       },
       last_sync: sync.last_sync,

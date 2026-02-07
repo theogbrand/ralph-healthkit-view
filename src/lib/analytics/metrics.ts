@@ -1,4 +1,4 @@
-import type { DateRange, MetricSummary } from '@/types/analytics';
+import type { DateRange, MetricSummary, WeekComparisonMetric } from '@/types/analytics';
 import { HEALTH_TYPE_MAP, RUNNING_WORKOUT_TYPES, GYM_WORKOUT_TYPES } from '@/config/metrics';
 import { getDateRangeBounds, formatDateISO, getISOWeekKey, getISOWeekRange } from '@/lib/utils/date-helpers';
 import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getRunningWorkoutsWithDistance } from '@/lib/db/queries';
@@ -265,4 +265,106 @@ export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
   };
 
   return [freqSummary, durationSummary, intensitySummary, gymHRSummary];
+}
+
+// --- Week-over-Week Comparison ---
+
+function getThisAndLastWeekBounds(): { thisWeek: { start: string; end: string }; lastWeek: { start: string; end: string } } {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const diffToMon = day === 0 ? 6 : day - 1;
+
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - diffToMon);
+  thisMonday.setHours(0, 0, 0, 0);
+
+  const thisSunday = new Date(thisMonday);
+  thisSunday.setDate(thisMonday.getDate() + 6);
+
+  const lastMonday = new Date(thisMonday);
+  lastMonday.setDate(thisMonday.getDate() - 7);
+
+  const lastSunday = new Date(thisMonday);
+  lastSunday.setDate(thisMonday.getDate() - 1);
+
+  return {
+    thisWeek: { start: formatDateISO(thisMonday), end: formatDateISO(thisSunday) + ' 23:59:59' },
+    lastWeek: { start: formatDateISO(lastMonday), end: formatDateISO(lastSunday) + ' 23:59:59' },
+  };
+}
+
+function buildComparison(label: string, unit: string, thisVal: number | null, lastVal: number | null, higherIsBetter: boolean): WeekComparisonMetric {
+  const delta = thisVal != null && lastVal != null ? thisVal - lastVal : null;
+  const deltaPercent = delta != null && lastVal && lastVal !== 0
+    ? Math.round((delta / Math.abs(lastVal)) * 100)
+    : null;
+  return { label, unit, thisWeek: thisVal, lastWeek: lastVal, delta, deltaPercent, higherIsBetter };
+}
+
+function avg(arr: number[]): number | null {
+  return arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+}
+
+function round2(v: number | null): number | null {
+  return v != null ? Math.round(v * 100) / 100 : null;
+}
+
+export function getRunningWeekComparison(): WeekComparisonMetric[] {
+  const { thisWeek, lastWeek } = getThisAndLastWeekBounds();
+  const DURATION_CORRECTION = 60;
+
+  const thisWorkouts = getRunningWorkoutsWithDistance(thisWeek.start, thisWeek.end);
+  const lastWorkouts = getRunningWorkoutsWithDistance(lastWeek.start, lastWeek.end);
+
+  const pace = (workouts: typeof thisWorkouts) => {
+    const withDist = workouts.filter(w => w.distance_km && w.distance_km > 0);
+    return avg(withDist.map(w => (w.duration_minutes * DURATION_CORRECTION) / w.distance_km!));
+  };
+
+  const runHR = (workouts: typeof thisWorkouts) =>
+    avg(workouts.filter(w => w.avg_heart_rate).map(w => w.avg_heart_rate!));
+
+  const rhr = (start: string, end: string) => {
+    const data = getDailyAverageByType('HKQuantityTypeIdentifierRestingHeartRate', start, end);
+    return avg(data.map(d => d.avg_value));
+  };
+
+  const totalDist = (workouts: typeof thisWorkouts) => {
+    const sum = workouts.reduce((acc, w) => acc + (w.distance_km ?? 0), 0);
+    return workouts.length > 0 ? sum : null;
+  };
+
+  return [
+    buildComparison('Avg Pace', 'min/km', round2(pace(thisWorkouts)), round2(pace(lastWorkouts)), false),
+    buildComparison('Avg Heart Rate (Runs)', 'bpm', round2(runHR(thisWorkouts)), round2(runHR(lastWorkouts)), false),
+    buildComparison('Resting Heart Rate', 'bpm', round2(rhr(thisWeek.start, thisWeek.end)), round2(rhr(lastWeek.start, lastWeek.end)), false),
+    buildComparison('Runs', 'count', thisWorkouts.length, lastWorkouts.length, true),
+    buildComparison('Distance', 'km', round2(totalDist(thisWorkouts)), round2(totalDist(lastWorkouts)), true),
+  ];
+}
+
+export function getGymWeekComparison(): WeekComparisonMetric[] {
+  const { thisWeek, lastWeek } = getThisAndLastWeekBounds();
+  const DURATION_CORRECTION = 60;
+
+  const thisWorkouts = getWorkoutsByType(GYM_WORKOUT_TYPES, thisWeek.start, thisWeek.end);
+  const lastWorkouts = getWorkoutsByType(GYM_WORKOUT_TYPES, lastWeek.start, lastWeek.end);
+
+  const avgDuration = (workouts: typeof thisWorkouts) =>
+    avg(workouts.map(w => w.duration_minutes * DURATION_CORRECTION));
+
+  const avgIntensity = (workouts: typeof thisWorkouts) => {
+    const withEnergy = workouts.filter(w => w.total_energy_kcal && w.duration_minutes > 0);
+    return avg(withEnergy.map(w => w.total_energy_kcal! / (w.duration_minutes * DURATION_CORRECTION)));
+  };
+
+  const gymHR = (workouts: typeof thisWorkouts) =>
+    avg(workouts.filter(w => w.avg_heart_rate).map(w => w.avg_heart_rate!));
+
+  return [
+    buildComparison('Workouts', 'count', thisWorkouts.length, lastWorkouts.length, true),
+    buildComparison('Avg Duration', 'min', round2(avgDuration(thisWorkouts)), round2(avgDuration(lastWorkouts)), true),
+    buildComparison('Avg Intensity', 'kcal/min', round2(avgIntensity(thisWorkouts)), round2(avgIntensity(lastWorkouts)), true),
+    buildComparison('Avg Heart Rate (Gym)', 'bpm', round2(gymHR(thisWorkouts)), round2(gymHR(lastWorkouts)), true),
+  ];
 }

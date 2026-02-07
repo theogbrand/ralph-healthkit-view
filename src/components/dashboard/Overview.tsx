@@ -74,6 +74,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
               key={key}
               metrics={data.categories[key].metrics}
               dateRange={dateRange}
+              weekComparison={data.categories[key].weekComparison}
             />
           ))}
         </section>

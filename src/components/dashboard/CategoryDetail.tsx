@@ -1,17 +1,19 @@
 'use client';
 
-import type { MetricSummary, DateRange } from '@/types/analytics';
+import type { MetricSummary, DateRange, WeekComparisonMetric } from '@/types/analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendChart } from '@/components/charts/TrendChart';
+import { ComparisonCard } from '@/components/charts/ComparisonCard';
 import { formatMetricValue, getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
 
 interface CategoryDetailProps {
   title: string;
   metrics: MetricSummary[];
   dateRange: DateRange;
+  weekComparison?: WeekComparisonMetric[];
 }
 
-export function CategoryDetail({ title, metrics, dateRange }: CategoryDetailProps) {
+export function CategoryDetail({ title, metrics, dateRange, weekComparison }: CategoryDetailProps) {
   const EMPTY_MESSAGES: Record<string, string> = {
     Running: 'No runs recorded in this period',
     Gym: 'No gym workouts recorded in this period',
@@ -30,6 +32,16 @@ export function CategoryDetail({ title, metrics, dateRange }: CategoryDetailProp
 
   return (
     <div className="space-y-4">
+      {weekComparison && weekComparison.length > 0 && (
+        <>
+          <h3 className="text-lg font-semibold">This Week vs Last Week</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {weekComparison.map((m) => (
+              <ComparisonCard key={m.label} metric={m} />
+            ))}
+          </div>
+        </>
+      )}
       <h3 className="text-lg font-semibold">{title} Metrics</h3>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {metrics.map((metric) => (

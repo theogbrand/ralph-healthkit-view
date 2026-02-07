@@ -16,11 +16,22 @@ export interface MetricSummary {
   sparkline_data: number[];
 }
 
+export interface WeekComparisonMetric {
+  label: string;
+  unit: string;
+  thisWeek: number | null;
+  lastWeek: number | null;
+  delta: number | null;
+  deltaPercent: number | null;
+  higherIsBetter: boolean;
+}
+
 export interface CategoryScore {
   name: string;
   score: number | null;
   trend: 'improving' | 'stable' | 'declining';
   metrics: MetricSummary[];
+  weekComparison?: WeekComparisonMetric[];
 }
 
 export interface DashboardData {
