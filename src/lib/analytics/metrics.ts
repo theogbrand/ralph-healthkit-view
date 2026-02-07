@@ -1,7 +1,7 @@
 import type { DateRange, MetricSummary } from '@/types/analytics';
 import { HEALTH_TYPE_MAP, RUNNING_WORKOUT_TYPES, GYM_WORKOUT_TYPES } from '@/config/metrics';
-import { getDateRangeBounds, formatDateISO } from '@/lib/utils/date-helpers';
-import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getWeeklyWorkoutSummary, getRunningWorkoutsWithDistance, getWeeklyRunningDistance } from '@/lib/db/queries';
+import { getDateRangeBounds, formatDateISO, getISOWeekKey, getISOWeekRange } from '@/lib/utils/date-helpers';
+import { getDailyAverageByType, getDailySumByType, getLatestRecordByType, getWorkoutsByType, getRunningWorkoutsWithDistance } from '@/lib/db/queries';
 
 // Types that should use SUM aggregation (cumulative daily metrics)
 const SUM_TYPES = new Set([
@@ -113,15 +113,30 @@ function computeTrendInverted(values: number[]): 'improving' | 'stable' | 'decli
 export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
   const { start, end } = getDateRangeBounds(dateRange);
   const workoutsWithDist = getRunningWorkoutsWithDistance(start, end);
-  const weeklySummary = getWeeklyWorkoutSummary(RUNNING_WORKOUT_TYPES, start, end);
 
   // duration_minutes is stored in hours due to a parser bug (duration_seconds / 60 / 60).
   // Multiply by 60 to get actual minutes.
   const DURATION_CORRECTION = 60;
 
-  // 1. Avg Pace (min/km) — lower = improving
-  const runsWithDistance = workoutsWithDist.filter(w => w.computed_distance_km && w.computed_distance_km > 0);
-  const paceValues = runsWithDistance.map(w => (w.duration_minutes * DURATION_CORRECTION) / w.computed_distance_km!);
+  // Group workouts by ISO week for runs-per-week and weekly-distance
+  const allWeeks = getISOWeekRange(start, end);
+  const weeklyCountMap = new Map<string, number>();
+  const weeklyDistMap = new Map<string, number>();
+  for (const wk of allWeeks) {
+    weeklyCountMap.set(wk, 0);
+    weeklyDistMap.set(wk, 0);
+  }
+  for (const w of workoutsWithDist) {
+    const key = getISOWeekKey(w.start_date);
+    weeklyCountMap.set(key, (weeklyCountMap.get(key) ?? 0) + 1);
+    weeklyDistMap.set(key, (weeklyDistMap.get(key) ?? 0) + (w.distance_km ?? 0));
+  }
+  const weeklyRunCounts = allWeeks.map(wk => weeklyCountMap.get(wk) ?? 0);
+  const weeklyDistances = allWeeks.map(wk => weeklyDistMap.get(wk) ?? 0);
+
+  // 1. Avg Pace (min/km) — lower = improving (use workout-level distance_km)
+  const runsWithDistance = workoutsWithDist.filter(w => w.distance_km && w.distance_km > 0);
+  const paceValues = runsWithDistance.map(w => (w.duration_minutes * DURATION_CORRECTION) / w.distance_km!);
   const avgPace = paceValues.length > 0 ? paceValues.reduce((a, b) => a + b, 0) / paceValues.length : null;
   const paceSummary: MetricSummary = {
     label: 'Avg Pace',
@@ -159,7 +174,6 @@ export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
   };
 
   // 4. Runs per Week — higher = improving
-  const weeklyRunCounts = weeklySummary.map(w => w.count);
   const avgRunsPerWeek = weeklyRunCounts.length > 0 ? weeklyRunCounts.reduce((a, b) => a + b, 0) / weeklyRunCounts.length : null;
   const runsPerWeekSummary: MetricSummary = {
     label: 'Runs per Week',
@@ -170,9 +184,7 @@ export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
     sparkline_data: weeklyRunCounts,
   };
 
-  // 5. Weekly Distance — computed from records table correlated with workout windows
-  const weeklyRunDist = getWeeklyRunningDistance(start, end);
-  const weeklyDistances = weeklyRunDist.map(w => w.total_distance);
+  // 5. Weekly Distance — from workout-level distance_km
   const avgWeeklyDist = weeklyDistances.length > 0 ? weeklyDistances.reduce((a, b) => a + b, 0) / weeklyDistances.length : null;
   const distanceSummary: MetricSummary = {
     label: 'Weekly Distance',
@@ -189,13 +201,21 @@ export function getRunningMetrics(dateRange: DateRange): MetricSummary[] {
 export function getGymMetrics(dateRange: DateRange): MetricSummary[] {
   const { start, end } = getDateRangeBounds(dateRange);
   const workouts = getWorkoutsByType(GYM_WORKOUT_TYPES, start, end);
-  const weeklySummary = getWeeklyWorkoutSummary(GYM_WORKOUT_TYPES, start, end);
 
   // duration_minutes is stored in hours due to parser bug; multiply by 60 for actual minutes
   const DURATION_CORRECTION = 60;
 
+  // Group workouts by ISO week for workouts-per-week
+  const allWeeks = getISOWeekRange(start, end);
+  const weeklyCountMap = new Map<string, number>();
+  for (const wk of allWeeks) weeklyCountMap.set(wk, 0);
+  for (const w of workouts) {
+    const key = getISOWeekKey(w.start_date);
+    weeklyCountMap.set(key, (weeklyCountMap.get(key) ?? 0) + 1);
+  }
+  const weeklyCounts = allWeeks.map(wk => weeklyCountMap.get(wk) ?? 0);
+
   // 1. Workouts per Week — higher = improving
-  const weeklyCounts = weeklySummary.map(w => w.count);
   const avgPerWeek = weeklyCounts.length > 0 ? weeklyCounts.reduce((a, b) => a + b, 0) / weeklyCounts.length : null;
   const freqSummary: MetricSummary = {
     label: 'Workouts per Week',
