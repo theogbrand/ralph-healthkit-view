@@ -47,3 +47,6 @@ data/*.db-shm
 # Foundry runtime data
 .foundry/
 data/device-exported
+# Horizon runtime data
+.horizon/
+.letta

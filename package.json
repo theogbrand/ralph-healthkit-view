@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ob1-sg/horizon": "^0.1.11",
     "@types/busboy": "^1.5.4",
     "adm-zip": "^0.5.16",
     "better-sqlite3": "^12.6.2",
