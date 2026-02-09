@@ -50,3 +50,5 @@ data/device-exported
 # Horizon runtime data
 .horizon/
 .letta
+.expo
+dist
