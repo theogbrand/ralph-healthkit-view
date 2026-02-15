@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { DashboardData, DateRange } from '@/types/analytics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { FitnessScore } from '@/components/charts/FitnessScore';
 import { MetricCard } from '@/components/charts/MetricCard';
 import { ProgressChart } from '@/components/charts/ProgressChart';
@@ -31,61 +31,80 @@ export function Overview({ data, dateRange }: OverviewProps) {
   const toggle = (key: string) => setExpanded((prev) => (prev === key ? null : key));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Fitness Score */}
       <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>Overall Fitness Score</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
+        <h2 className="text-base font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+          Fitness Score
+        </h2>
+        <Card variant="elevated">
+          <CardContent className="flex items-center justify-center py-4">
             <FitnessScore score={data.overall_score} trend={data.overall_trend} />
           </CardContent>
         </Card>
       </section>
 
       {/* Category Cards — click to expand details */}
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {CATEGORY_CONFIG.map(({ key }) => {
-          const cat = data.categories[key];
-          return (
-            <button
-              key={key}
-              className="text-left"
-              onClick={() => toggle(key)}
-            >
-              <MetricCard
-                title={cat.name}
-                value={cat.score}
-                unit="score"
-                trend={cat.trend}
-                sparklineData={cat.metrics[0]?.sparkline_data}
-              />
-            </button>
-          );
-        })}
+      <section>
+        <h2 className="text-base font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+          Breakdown
+        </h2>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {CATEGORY_CONFIG.map(({ key }) => {
+            const cat = data.categories[key];
+            const isExpanded = expanded === key;
+            return (
+              <div key={key} onClick={() => toggle(key)}>
+                <MetricCard
+                  title={cat.name}
+                  value={cat.score}
+                  unit="score"
+                  trend={cat.trend}
+                  sparklineData={cat.metrics[0]?.sparkline_data}
+                  interactive
+                  active={isExpanded}
+                />
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Expanded Category Detail */}
-      {expanded && (
-        <section>
-          {CATEGORY_CONFIG.filter(({ key }) => key === expanded).map(({ key, Component }) => (
-            <Component
-              key={key}
-              metrics={data.categories[key].metrics}
-              dateRange={dateRange}
-              weekComparison={data.categories[key].weekComparison}
-            />
-          ))}
-        </section>
-      )}
+      {CATEGORY_CONFIG.map(({ key, Component }) => (
+        <div
+          key={key}
+          className="grid transition-[grid-template-rows] duration-300 ease-out"
+          style={{ gridTemplateRows: expanded === key ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden min-h-0">
+            <div
+              className="transition-opacity duration-200"
+              style={{
+                opacity: expanded === key ? 1 : 0,
+                transitionDelay: expanded === key ? '100ms' : '0ms',
+              }}
+            >
+              {expanded === key && (
+                <section>
+                  <Component
+                    metrics={data.categories[key].metrics}
+                    dateRange={dateRange}
+                    weekComparison={data.categories[key].weekComparison}
+                  />
+                </section>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* Category Breakdown */}
       <section>
+        <h2 className="text-base font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+          Breakdown
+        </h2>
         <Card>
-          <CardHeader>
-            <CardTitle>Category Breakdown</CardTitle>
-          </CardHeader>
           <CardContent>
             <ProgressChart categories={data.categories} />
           </CardContent>
@@ -95,12 +114,12 @@ export function Overview({ data, dateRange }: OverviewProps) {
       {/* Score Trend */}
       {data.score_history.length > 0 && (
         <section>
+          <h2 className="text-base font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+            Your Progress
+          </h2>
           <Card>
-            <CardHeader>
-              <CardTitle>Score Trend</CardTitle>
-            </CardHeader>
             <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+              <TrendChart data={data.score_history} dateRange={dateRange} />
             </CardContent>
           </Card>
         </section>

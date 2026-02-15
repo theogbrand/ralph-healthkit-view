@@ -10,26 +10,31 @@ interface MetricCardProps {
   unit: string;
   trend: 'improving' | 'stable' | 'declining';
   sparklineData?: number[];
+  interactive?: boolean;
+  active?: boolean;
 }
 
-export function MetricCard({ title, value, unit, trend, sparklineData }: MetricCardProps) {
+export function MetricCard({ title, value, unit, trend, sparklineData, interactive, active }: MetricCardProps) {
   return (
-    <Card>
+    <Card
+      variant={interactive ? 'interactive' : undefined}
+      data-state={active ? 'active' : undefined}
+    >
       <CardHeader>
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-bold font-mono tabular-nums">
               {value !== null ? formatMetricValue(value, unit) : '--'}
             </p>
-            <p className={`mt-1 text-sm font-medium ${getTrendColor(trend)}`}>
+            <p className={`mt-1 text-xs font-semibold uppercase tracking-wide ${getTrendColor(trend)}`}>
               {getTrendIcon(trend)} {trend}
             </p>
           </div>
           {sparklineData && sparklineData.length > 1 && (
-            <div className="h-10 w-20">
+            <div className="h-[32px] w-[80px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={sparklineData.map((v, i) => ({ i, v }))}>
                   <Line

@@ -2,11 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { Upload } from 'lucide-react';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Overview } from '@/components/dashboard';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { timeAgo } from '@/lib/utils/date-helpers';
 
 type ApiResponse = DashboardData & {
@@ -15,10 +18,10 @@ type ApiResponse = DashboardData & {
 };
 
 const RANGES: { value: DateRange; label: string }[] = [
-  { value: '30d', label: '30 Days' },
-  { value: '60d', label: '60 Days' },
-  { value: '90d', label: '90 Days' },
-  { value: '365d', label: '1 Year' },
+  { value: '30d', label: '30d' },
+  { value: '60d', label: '60d' },
+  { value: '90d', label: '90d' },
+  { value: '365d', label: '1y' },
 ];
 
 export default function Home() {
@@ -52,13 +55,14 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">Ralph</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Ralph</h1>
           <nav className="flex items-center gap-4">
             {data?.last_sync && (
               <span className="text-sm text-muted-foreground">
-                Last sync: {timeAgo(data.last_sync)}
+                Synced {timeAgo(data.last_sync)}
               </span>
             )}
+            <ThemeToggle />
             <Link href="/import">
               <Button variant="outline">Import Data</Button>
             </Link>
@@ -81,22 +85,16 @@ export default function Home() {
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="flex items-center justify-center py-16">
-                <div className="text-muted-foreground">Loading dashboard...</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {loading && <DashboardSkeleton />}
 
         {/* Error State */}
         {!loading && error && (
           <Card>
             <CardContent className="flex items-center justify-center py-16">
               <div className="text-center">
-                <p className="text-muted-foreground">{error}</p>
+                <p className="text-muted-foreground">
+                  Couldn&apos;t load your dashboard. Check your connection and try again.
+                </p>
                 <Button className="mt-4" variant="outline" onClick={() => fetchData(range)}>
                   Retry
                 </Button>
@@ -109,8 +107,9 @@ export default function Home() {
         {!loading && !error && !hasData && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
+              <Upload className="size-12 text-muted-foreground/50" />
               <p className="text-lg text-muted-foreground">
-                No data yet. Import your Apple Health data to get started.
+                Welcome to Ralph. Import your Apple Health export to see your fitness story.
               </p>
               <Link href="/import">
                 <Button>Import Data</Button>
@@ -121,23 +120,7 @@ export default function Home() {
 
         {/* Dashboard Content */}
         {!loading && !error && hasData && data && (
-          <>
-            <Overview data={data} dateRange={range} />
-
-            {/* Sync Status Footer */}
-            <section className="mt-8">
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
-                  <div className="text-sm text-muted-foreground">
-                    Last sync: {data.last_sync ? timeAgo(data.last_sync) : 'Never'}
-                  </div>
-                  <Link href="/import">
-                    <Button size="sm">Import Data</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </section>
-          </>
+          <Overview data={data} dateRange={range} />
         )}
       </main>
     </div>
