@@ -1,8 +1,9 @@
 'use client';
 
-import { ResponsiveContainer, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatMetricValue, getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
+import { ACCENT } from '@/lib/utils/chart-colors';
 
 interface MetricCardProps {
   title: string;
@@ -36,15 +37,23 @@ export function MetricCard({ title, value, unit, trend, sparklineData, interacti
           {sparklineData && sparklineData.length > 1 && (
             <div className="h-[32px] w-[80px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sparklineData.map((v, i) => ({ i, v }))}>
-                  <Line
+                <AreaChart data={sparklineData.map((v, i) => ({ i, v }))}>
+                  <defs>
+                    <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={ACCENT} stopOpacity={0.2} />
+                      <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke={ACCENT}
                     strokeWidth={1.5}
+                    fill="url(#sparklineGrad)"
                     dot={false}
+                    isAnimationActive={false}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           )}

@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import { getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
+import { getScoreHex, TRACK_LIGHT } from '@/lib/utils/chart-colors';
 
 interface FitnessScoreProps {
   score: number | null;
@@ -9,24 +11,63 @@ interface FitnessScoreProps {
   size?: 'sm' | 'lg';
 }
 
-function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+function useCountUp(target: number, duration: number = 1000, enabled: boolean = true) {
+  const [value, setValue] = useState(0);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (!enabled || hasAnimated.current) {
+      setValue(target);
+      return;
+    }
+    hasAnimated.current = true;
+
+    const startTime = performance.now();
+
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }, [target, duration, enabled]);
+
+  return value;
 }
 
 export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
   const dimension = size === 'lg' ? 200 : 120;
-  const fontSize = size === 'lg' ? 'text-4xl' : 'text-2xl';
-  const trendSize = size === 'lg' ? 'text-lg' : 'text-sm';
+  const fontSize = size === 'lg' ? 'text-5xl' : 'text-2xl';
+  const [showTrend, setShowTrend] = useState(false);
+  const animatedScore = useCountUp(score ?? 0, 1000, score !== null);
+
+  useEffect(() => {
+    if (score !== null) {
+      const timer = setTimeout(() => setShowTrend(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [score]);
 
   if (score === null) {
     return (
       <div
-        className="flex items-center justify-center text-muted-foreground"
+        className="flex flex-col items-center justify-center text-muted-foreground"
         style={{ width: dimension, height: dimension }}
       >
-        No score
+        <div
+          className="rounded-full border-4 border-dashed border-muted flex items-center justify-center"
+          style={{ width: dimension, height: dimension }}
+        >
+          <span className="text-2xl font-bold">&mdash;</span>
+        </div>
+        <span className="mt-2 text-xs text-muted-foreground">Not enough data yet</span>
       </div>
     );
   }
@@ -51,17 +92,23 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
             <RadialBar
               dataKey="value"
               cornerRadius={8}
-              background={{ fill: '#e5e7eb' }}
+              background={{ fill: TRACK_LIGHT }}
+              isAnimationActive={true}
+              animationDuration={1000}
+              animationEasing="ease-out"
             />
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`${fontSize} font-bold`} style={{ color }}>
-            {Math.round(score)}
+          <span className={`${fontSize} font-bold font-mono tabular-nums`} style={{ color }}>
+            {animatedScore}
           </span>
         </div>
       </div>
-      <span className={`${trendSize} font-medium ${getTrendColor(trend)}`}>
+      <span
+        className={`text-xs font-semibold uppercase tracking-wide ${getTrendColor(trend)} transition-opacity duration-300`}
+        style={{ opacity: showTrend ? 1 : 0 }}
+      >
         {getTrendIcon(trend)} {trend}
       </span>
     </div>

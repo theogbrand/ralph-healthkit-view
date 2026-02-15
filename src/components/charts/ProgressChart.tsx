@@ -2,15 +2,10 @@
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import type { DashboardData } from '@/types/analytics';
+import { getScoreHex } from '@/lib/utils/chart-colors';
 
 interface ProgressChartProps {
   categories: DashboardData['categories'];
-}
-
-function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
 }
 
 const LABELS: Record<string, string> = {

@@ -12,6 +12,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import type { DateRange } from '@/types/analytics';
+import { ACCENT } from '@/lib/utils/chart-colors';
 
 interface TrendChartProps {
   data: Array<{ date: string; value: number }>;
@@ -28,7 +29,7 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
+  color = ACCENT,
   showArea = true,
 }: TrendChartProps) {
   if (!data.length) {

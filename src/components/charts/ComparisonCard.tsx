@@ -17,7 +17,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
 
   const deltaColor = isImproving === null
     ? 'text-muted-foreground'
-    : isImproving ? 'text-green-500' : 'text-red-500';
+    : isImproving ? 'text-positive' : 'text-negative';
 
   const arrow = deltaPercent != null
     ? (deltaPercent > 0 ? '↑' : deltaPercent < 0 ? '↓' : '→')
@@ -27,7 +27,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
     <Card>
       <CardHeader className="pb-1">
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
+        <p className="text-2xl font-bold font-mono tabular-nums">
           {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
         </p>
       </CardHeader>
@@ -36,7 +36,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
           Last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
         </span>
         {deltaPercent != null && (
-          <span className={`text-sm font-semibold ${deltaColor}`}>
+          <span className={`text-xs font-semibold uppercase tracking-wide ${deltaColor}`}>
             {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
           </span>
         )}

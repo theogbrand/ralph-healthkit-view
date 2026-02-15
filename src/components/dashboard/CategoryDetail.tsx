@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { ComparisonCard } from '@/components/charts/ComparisonCard';
 import { formatMetricValue, getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
+import { CHART_2 } from '@/lib/utils/chart-colors';
 
 interface CategoryDetailProps {
   title: string;
@@ -34,7 +35,9 @@ export function CategoryDetail({ title, metrics, dateRange, weekComparison }: Ca
     <div className="space-y-4">
       {weekComparison && weekComparison.length > 0 && (
         <>
-          <h3 className="text-lg font-semibold">This Week vs Last Week</h3>
+          <h3 className="text-base font-semibold uppercase tracking-wide text-muted-foreground">
+            This Week vs Last Week
+          </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {weekComparison.map((m) => (
               <ComparisonCard key={m.label} metric={m} />
@@ -42,18 +45,20 @@ export function CategoryDetail({ title, metrics, dateRange, weekComparison }: Ca
           </div>
         </>
       )}
-      <h3 className="text-lg font-semibold">{title} Metrics</h3>
+      <h3 className="text-base font-semibold uppercase tracking-wide text-muted-foreground">
+        {title} Metrics
+      </h3>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {metrics.map((metric) => (
           <Card key={metric.label}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">{metric.label}</CardTitle>
-                <span className={`text-sm font-medium ${getTrendColor(metric.trend)}`}>
+                <span className={`text-xs font-semibold uppercase tracking-wide ${getTrendColor(metric.trend)}`}>
                   {getTrendIcon(metric.trend)} {metric.trend}
                 </span>
               </div>
-              <p className="text-xl font-bold">
+              <p className="text-xl font-bold font-mono tabular-nums">
                 {metric.value !== null ? formatMetricValue(metric.value, metric.unit) : '--'}
               </p>
               {metric.change_percent !== null && (
@@ -72,7 +77,7 @@ export function CategoryDetail({ title, metrics, dateRange, weekComparison }: Ca
                     value,
                   }))}
                   dateRange={dateRange}
-                  color="#6366f1"
+                  color={CHART_2}
                   showArea
                 />
               ) : (
