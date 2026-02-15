@@ -1,13 +1,7 @@
 'use client';
 
-/**
- * File Upload Component
- *
- * Drag-and-drop file upload for Apple Health exports
- * Supports .zip and .xml files
- */
-
 import { useState, useCallback, DragEvent, ChangeEvent } from 'react';
+import { Upload, CheckCircle, XCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -82,10 +76,9 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
   }, []);
 
   const uploadFile = async (file: File) => {
-    // Validate file type
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith('.zip') && !fileName.endsWith('.xml')) {
-      const errorMsg = 'Invalid file type. Please upload a .zip or .xml file.';
+      const errorMsg = "That file type isn't supported. Please upload a .zip or .xml file from Apple Health.";
       setUploadMessage(errorMsg);
       onUploadError?.(errorMsg);
       return;
@@ -97,16 +90,13 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
     setUploadStats(null);
 
     try {
-      // Create form data
       const formData = new FormData();
       formData.append('file', file);
 
-      // Simulate progress (since we can't track actual upload progress easily)
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
-      // Upload file
       const response = await fetch('/api/import', {
         method: 'POST',
         body: formData,
@@ -151,10 +141,10 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
   return (
     <div className="space-y-4">
       <Card
-        className={`p-8 border-2 border-dashed transition-colors ${
+        className={`p-8 border-2 border-dashed transition-all duration-200 ${
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-solid border-primary bg-primary/5 animate-pulse'
+            : 'border-border hover:border-border'
         } ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -163,20 +153,8 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
       >
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           {/* Upload Icon */}
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
+          <div className={`w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center transition-transform duration-200 ${isDragging ? 'scale-105' : ''}`}>
+            <Upload className="size-8 text-primary" />
           </div>
 
           {/* Instructions */}
@@ -184,11 +162,11 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
             <h3 className="text-lg font-semibold mb-2">
               Upload Apple Health Export
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Drag and drop your export.zip file here, or click to browse
+            <p className="text-sm text-muted-foreground mb-4">
+              Drop your Apple Health export here, or browse to select
             </p>
-            <p className="text-xs text-gray-500">
-              Supports .zip and .xml files
+            <p className="text-xs text-muted-foreground">
+              .zip or .xml
             </p>
           </div>
 
@@ -217,67 +195,55 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="font-medium">Processing...</span>
-              <span className="text-gray-600">{uploadProgress}%</span>
+              <span className="text-muted-foreground font-mono tabular-nums">{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} />
-            <p className="text-xs text-gray-600">{uploadMessage}</p>
+            <p className="text-xs text-muted-foreground">{uploadMessage}</p>
           </div>
         </Card>
       )}
 
       {/* Results */}
       {!isUploading && uploadMessage && (
-        <Card className="p-4">
+        <Card className="p-4 animate-in slide-in-from-bottom-4 duration-200">
           <div className="space-y-3">
             <div
               className={`flex items-start space-x-2 ${
-                uploadStats ? 'text-green-600' : 'text-red-600'
+                uploadStats ? 'text-positive' : 'text-negative'
               }`}
             >
               {uploadStats ? (
-                <svg className="w-5 h-5 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <CheckCircle className="size-5 mt-0.5 animate-in zoom-in duration-300" />
               ) : (
-                <svg className="w-5 h-5 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <XCircle className="size-5 mt-0.5" />
               )}
               <p className="font-medium">{uploadMessage}</p>
             </div>
 
             {uploadStats && (
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Records Imported</p>
-                  <p className="text-xl font-bold text-gray-900">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">Records Imported</p>
+                  <p className="text-xl font-bold font-mono tabular-nums text-foreground">
                     {uploadStats.recordsImported.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Workouts Imported</p>
-                  <p className="text-xl font-bold text-gray-900">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">Workouts Imported</p>
+                  <p className="text-xl font-bold font-mono tabular-nums text-foreground">
                     {uploadStats.workoutsImported.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Date Range</p>
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">Date Range</p>
+                  <p className="text-sm font-medium text-foreground">
                     {formatDate(uploadStats.dateRange.earliest)} -{' '}
                     {formatDate(uploadStats.dateRange.latest)}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Processing Time</p>
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-muted-foreground">Processing Time</p>
+                  <p className="text-sm font-medium font-mono text-foreground">
                     {formatTime(uploadStats.processingTimeMs)}
                   </p>
                 </div>
