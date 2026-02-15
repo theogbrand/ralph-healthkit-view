@@ -12,31 +12,31 @@ interface FitnessScoreProps {
 }
 
 function useCountUp(target: number, duration: number = 1000, enabled: boolean = true) {
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(enabled ? 0 : target);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
     if (!enabled || hasAnimated.current) {
-      setValue(target);
       return;
     }
     hasAnimated.current = true;
 
     const startTime = performance.now();
+    let animationId: number;
 
     function animate(currentTime: number) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(eased * target));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationId = requestAnimationFrame(animate);
       }
     }
 
-    requestAnimationFrame(animate);
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
   }, [target, duration, enabled]);
 
   return value;
