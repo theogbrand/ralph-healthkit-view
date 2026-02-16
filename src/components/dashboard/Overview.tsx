@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FitnessScore } from '@/components/charts/FitnessScore';
@@ -34,7 +35,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
     <div className="space-y-8">
       {/* Fitness Score — floats on page bg, no card wrapper */}
       <section className="flex flex-col items-center py-4">
-        <h2 className="mb-4 text-sm font-semibold text-[1.25rem] tracking-tight">
+        <h2 className="mb-4 text-[1.25rem] font-semibold tracking-tight">
           Overall Fitness Score
         </h2>
         <FitnessScore score={data.overall_score} trend={data.overall_trend} />
@@ -51,34 +52,45 @@ export function Overview({ data, dateRange }: OverviewProps) {
               className="text-left"
               onClick={() => toggle(key)}
             >
-              <MetricCard
-                title={cat.name}
-                value={cat.score}
-                unit="score"
-                trend={cat.trend}
-                sparklineData={cat.metrics[0]?.sparkline_data}
-              />
-              {isExpanded && (
-                <div className="mt-1 h-0.5 rounded-full bg-foreground/10" />
-              )}
+              <div className={isExpanded ? 'rounded-2xl ring-2 ring-foreground/5' : ''}>
+                <MetricCard
+                  title={cat.name}
+                  value={cat.score}
+                  unit="score"
+                  trend={cat.trend}
+                  sparklineData={cat.metrics[0]?.sparkline_data}
+                />
+              </div>
             </button>
           );
         })}
       </section>
 
-      {/* Expanded Category Detail */}
-      {expanded && (
-        <section>
-          {CATEGORY_CONFIG.filter(({ key }) => key === expanded).map(({ key, Component }) => (
-            <Component
-              key={key}
-              metrics={data.categories[key].metrics}
-              dateRange={dateRange}
-              weekComparison={data.categories[key].weekComparison}
-            />
-          ))}
-        </section>
-      )}
+      {/* Expanded Category Detail with animation */}
+      <AnimatePresence mode="wait">
+        {expanded && (
+          <motion.section
+            key={expanded}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{
+              opacity: { duration: 0.2 },
+              height: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
+            }}
+            className="overflow-hidden"
+          >
+            {CATEGORY_CONFIG.filter(({ key }) => key === expanded).map(({ key, Component }) => (
+              <Component
+                key={key}
+                metrics={data.categories[key].metrics}
+                dateRange={dateRange}
+                weekComparison={data.categories[key].weekComparison}
+              />
+            ))}
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* Category Breakdown */}
       <section>

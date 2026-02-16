@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { DateRange } from '@/types/analytics';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,34 @@ const RANGES: { value: DateRange; label: string }[] = [
   { value: '365d', label: '1Y' },
 ];
 
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Skeleton ring */}
+      <div className="flex flex-col items-center gap-3 py-4">
+        <div className="h-5 w-40 animate-pulse rounded-lg bg-muted" />
+        <div className="h-[200px] w-[200px] animate-pulse rounded-full bg-muted" />
+        <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+      </div>
+      {/* Skeleton category cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {[0, 1].map((i) => (
+          <div key={i} className="rounded-2xl bg-card p-5 shadow-[0_1px_3px_oklch(0_0_0/0.04),0_4px_12px_oklch(0_0_0/0.03)]">
+            <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+            <div className="mt-3 h-7 w-24 animate-pulse rounded bg-muted" />
+            <div className="mt-2 h-3 w-16 animate-pulse rounded bg-muted" />
+          </div>
+        ))}
+      </div>
+      {/* Skeleton chart */}
+      <div className="rounded-2xl bg-card p-5 shadow-[0_1px_3px_oklch(0_0_0/0.04),0_4px_12px_oklch(0_0_0/0.03)]">
+        <div className="h-5 w-36 animate-pulse rounded bg-muted" />
+        <div className="mt-4 h-[200px] w-full animate-pulse rounded-xl bg-muted" />
+      </div>
+    </div>
+  );
+}
+
 async function parseAnalyticsResponse(res: Response): Promise<ApiResponse> {
   const text = await res.text();
 
@@ -30,7 +59,6 @@ async function parseAnalyticsResponse(res: Response): Promise<ApiResponse> {
     return JSON.parse(text) as ApiResponse;
   } catch (error) {
     const originalError = error;
-    // Some hosting proxies can append a chunk terminator (`0`) after JSON.
     const match = text.match(/^([\s\S]*[}\]])\r?\n0\r?\n?\s*$/);
     if (match) {
       try {
@@ -85,36 +113,54 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Frosted Preview Banner */}
+      <AnimatePresence>
+        {isPreviewMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="sticky top-0 z-50 border-b border-border/50 bg-white/70 backdrop-blur-md dark:bg-black/50"
+          >
+            <div className="mx-auto flex max-w-[960px] items-center justify-between px-4 py-2 sm:px-6 lg:px-12">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                  <span aria-hidden>●</span>
+                  Preview
+                </span>
+                <span className="text-xs text-muted-foreground">Demo data</span>
+              </div>
+              {hasRealData && (
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => setIsManualPreviewMode(false)}
+                >
+                  Exit Preview
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <header>
         <div className="mx-auto flex max-w-[960px] items-center justify-between px-4 py-5 sm:px-6 lg:px-12">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">Ralph</h1>
-            {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 backdrop-blur-sm dark:text-amber-400">
-                <span aria-hidden>●</span>
-                Preview
-              </span>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Ralph</h1>
           <nav className="flex items-center gap-3">
-            {hasRealData && !loading && !error && (
+            {hasRealData && !loading && !error && !isManualPreviewMode && (
               <Button
                 size="sm"
-                variant={isManualPreviewMode ? 'secondary' : 'outline'}
-                aria-pressed={isManualPreviewMode}
-                onClick={() => setIsManualPreviewMode((prev) => !prev)}
+                variant="outline"
+                onClick={() => setIsManualPreviewMode(true)}
               >
-                {isManualPreviewMode ? 'Exit Preview' : 'Preview Mode'}
+                Preview Mode
               </Button>
             )}
             {!isPreviewMode && data?.last_sync && (
               <span className="text-xs text-muted-foreground">
                 {timeAgo(data.last_sync)}
-              </span>
-            )}
-            {isPreviewMode && (
-              <span className="text-xs text-muted-foreground">
-                Demo data
               </span>
             )}
             <Link href="/import">
@@ -138,51 +184,76 @@ export default function Home() {
           </Tabs>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="flex items-center justify-center py-16">
-                <div className="text-muted-foreground">Loading dashboard...</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Loading Skeleton */}
+        <AnimatePresence mode="wait">
+          {loading && (
+            <motion.div
+              key="skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DashboardSkeleton />
+            </motion.div>
+          )}
 
-        {/* Error State */}
-        {!loading && error && (
-          <Card>
-            <CardContent className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <h2 className="text-lg font-semibold">Couldn&apos;t load your data</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Check your connection and try again.</p>
-                <Button className="mt-4" variant="outline" onClick={() => fetchData(range)}>
-                  Retry
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* Error State */}
+          {!loading && error && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card>
+                <CardContent className="flex items-center justify-center py-16">
+                  <div className="text-center">
+                    <h2 className="text-lg font-semibold">Couldn&apos;t load your data</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Check your connection and try again.</p>
+                    <Button className="mt-4" variant="outline" onClick={() => fetchData(range)}>
+                      Retry
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-        {/* Empty State */}
-        {!loading && !error && !hasData && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
-              <h2 className="text-lg font-semibold">Welcome to Ralph</h2>
-              <p className="text-sm text-muted-foreground">
-                Import your Apple Health data to get started.
-              </p>
-              <Link href="/import">
-                <Button>Import Data</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
+          {/* Empty State */}
+          {!loading && !error && !hasData && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
+                  <h2 className="text-lg font-semibold">Welcome to Ralph</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Import your Apple Health data to get started.
+                  </p>
+                  <Link href="/import">
+                    <Button>Import Data</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-        {/* Dashboard Content */}
-        {!loading && !error && hasData && data && (
-          <Overview data={data} dateRange={range} />
-        )}
+          {/* Dashboard Content */}
+          {!loading && !error && hasData && data && (
+            <motion.div
+              key={`dashboard-${range}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Overview data={data} dateRange={range} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
