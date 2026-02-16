@@ -1,7 +1,6 @@
 'use client';
 
 import type { WeekComparisonMetric } from '@/types/analytics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatMetricValue } from '@/lib/utils/formatters';
 
 interface ComparisonCardProps {
@@ -15,32 +14,32 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
     ? higherIsBetter ? deltaPercent > 0 : deltaPercent < 0
     : null;
 
-  const deltaColor = isImproving === null
-    ? 'text-muted-foreground'
-    : isImproving ? 'text-green-500' : 'text-red-500';
+  const deltaTextColor = isImproving === null
+    ? 'text-[var(--apple-text-secondary)]'
+    : isImproving ? 'text-[var(--apple-improving)]' : 'text-[var(--apple-declining)]';
+
+  const deltaBgColor = isImproving === null
+    ? 'bg-[var(--apple-stable)]/10'
+    : isImproving ? 'bg-[var(--apple-improving)]/10' : 'bg-[var(--apple-declining)]/10';
 
   const arrow = deltaPercent != null
     ? (deltaPercent > 0 ? '↑' : deltaPercent < 0 ? '↓' : '→')
     : '';
 
   return (
-    <Card>
-      <CardHeader className="pb-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
-          {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
-        </p>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          Last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
+    <div className="min-w-[160px] snap-start bg-[var(--apple-card)] rounded-[16px] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]">
+      <p className="apple-caption mb-1">{label}</p>
+      <p className="text-[22px] font-semibold text-[var(--apple-text-primary)]">
+        {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
+      </p>
+      <p className="apple-caption mt-1">
+        last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
+      </p>
+      {deltaPercent != null && (
+        <span className={`inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-[11px] font-semibold ${deltaTextColor} ${deltaBgColor}`}>
+          {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
         </span>
-        {deltaPercent != null && (
-          <span className={`text-sm font-semibold ${deltaColor}`}>
-            {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
-          </span>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
