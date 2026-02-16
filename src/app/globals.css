@@ -102,6 +102,10 @@
     pointer-events: none;
     z-index: 0;
   }
+  *:focus-visible {
+    outline: 3px solid rgba(139, 92, 246, 0.50);
+    outline-offset: 2px;
+  }
   body::after {
     content: '';
     position: fixed;
