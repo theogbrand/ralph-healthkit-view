@@ -6,65 +6,68 @@
 
 ## Summary
 
-Redesign the Ralph Apple Health Dashboard with a Glassmorphism design style. This involves updating the entire visual layer — CSS variables, base UI components, page layouts, chart styling, fonts, and interactions — to create a frosted-glass aesthetic with translucent cards, backdrop blur, gradient backgrounds, refined typography, and smooth micro-interactions. The app is a Next.js 16 + Tailwind CSS 4 + Recharts dashboard with ~15 UI component files.
+Redesign the Ralph Apple Health Dashboard with a Glassmorphism Design Style, transforming the current flat/solid shadcn/ui aesthetic into a frosted-glass, translucent, depth-layered UI. This involves updating the CSS theme system (globals.css), all UI primitives (Card, Button, Tabs, Progress), chart containers, page layouts, background gradient mesh, typography enhancements, and adding micro-interaction animations. The app uses mock/preview data by default so no Apple Health import is required for visual development.
 
 ## Requirements Analysis
 
 From the issue description:
-1. **Glassmorphism Design Style**: Frosted-glass card effects with `backdrop-blur`, semi-transparent backgrounds, subtle borders, and layered depth
-2. **Styling**: Complete visual overhaul of color palette, card styles, shadows, and backgrounds
-3. **Fonts**: Typography refresh (currently using Geist Sans/Mono — may swap or enhance)
-4. **Interactions**: Micro-interactions, hover effects, transitions, and animations
-5. **Live Preview**: Dev server running so changes can be monitored in real time
+
+1. **Glassmorphism Design Style UI Makeover** - Apply glassmorphism principles:
+   - Frosted glass effect (translucent backgrounds with backdrop-blur)
+   - Layered depth with subtle borders (semi-transparent white borders)
+   - Colorful gradient backgrounds behind glass panels
+   - Soft shadows for floating appearance
+   - Clean, modern typography with varied weights
+
+2. **Styling** - Complete color system overhaul:
+   - Replace solid OKLch backgrounds with semi-transparent RGBA/HSLA values
+   - Add mesh gradient or animated gradient background
+   - Glass-effect cards with `backdrop-filter: blur()` and translucent fills
+   - Subtle inner glow borders (1px white/10-20% opacity)
+
+3. **Fonts** - Typography upgrade:
+   - Current: Geist Sans + Geist Mono (already modern, clean)
+   - Consider: Keep Geist (it's excellent for glassmorphism) OR swap to Inter/Plus Jakarta Sans
+   - Add font weight variation (light headings, medium body) for glass aesthetic
+
+4. **Interactions** - Micro-interactions and transitions:
+   - Hover effects on glass cards (slight scale, brightness shift, border glow)
+   - Smooth transitions on tab switches
+   - Animated gradient background (subtle movement)
+   - Card entrance animations (fade-in, slide-up)
+   - Sparkle/shimmer effects on key metrics
+
+5. **Live Preview** - Dev server must be running for visual monitoring
 
 ## File Map
 
 | File | Lines | Role | Relevance |
 |------|-------|------|-----------|
-| `src/app/globals.css` | 1-126 | Global styles, CSS variables, Tailwind theme | **PRIMARY** — All color variables, theme definition, base layer styles |
-| `src/app/layout.tsx` | 1-35 | Root HTML layout, font loading | Modify for background gradient, possible font swap |
-| `src/app/page.tsx` | 1-206 | Main dashboard page (client-side) | Update header, loading/error/empty states, footer styling |
-| `src/app/import/page.tsx` | 1-57 | Import page | Update header and layout to match new theme |
-| `src/components/ui/card.tsx` | 1-93 | Base Card component (used everywhere) | **PRIMARY** — Add glassmorphism classes (backdrop-blur, transparency, border) |
-| `src/components/ui/button.tsx` | 1-65 | Button component (CVA variants) | Update variant styles for glass aesthetic |
-| `src/components/ui/tabs.tsx` | 1-92 | Tabs component (Radix UI) | Update tab list background and trigger styles |
-| `src/components/ui/progress.tsx` | 1-32 | Progress bar | Update for glass style |
-| `src/components/charts/FitnessScore.tsx` | 1-69 | Radial fitness score gauge | Update colors, background ring color |
-| `src/components/charts/MetricCard.tsx` | 1-51 | KPI metric card with sparkline | Inherits from Card — may need sparkline color updates |
-| `src/components/charts/ComparisonCard.tsx` | 1-47 | Week comparison card | Inherits from Card — check text contrast |
-| `src/components/charts/TrendChart.tsx` | 1-84 | Area/line trend chart | Update grid, tooltip styling, area fill |
-| `src/components/charts/ProgressChart.tsx` | 1-51 | Horizontal bar chart | Update bar colors, tooltip |
-| `src/components/charts/ChartErrorBoundary.tsx` | ~20 | Error boundary | No styling changes needed |
-| `src/components/dashboard/Overview.tsx` | 1-111 | Main dashboard layout | Spacing, section styling |
-| `src/components/dashboard/CategoryDetail.tsx` | 1-90 | Detailed category metrics | Heading styles, grid layout |
-| `src/components/dashboard/RunningMetrics.tsx` | 1-15 | Running category wrapper | Pass-through, no changes |
-| `src/components/dashboard/GymMetrics.tsx` | 1-15 | Gym category wrapper | Pass-through, no changes |
-| `src/components/import/FileUpload.tsx` | 1-292 | Drag-drop file upload | Update drop zone, progress, results cards |
-| `src/lib/utils/formatters.ts` | 1-76 | Score/trend color utilities | Update `getScoreColor`, `getScoreBgColor`, `getTrendColor` if palette changes |
-| `src/lib/utils.ts` | ~5 | cn() utility | No changes needed |
-| `src/config/metrics.ts` | - | Metrics configuration | No changes needed |
+| `src/app/globals.css` | 1-126 | Theme variables, Tailwind imports, base styles | **PRIMARY TARGET** - Must add glassmorphism CSS variables, backdrop-blur utilities, gradient bg, glass card styles |
+| `src/app/layout.tsx` | 1-35 | Root layout with fonts | Add gradient background wrapper, possibly change font imports |
+| `src/app/page.tsx` | 1-206 | Dashboard home page | Update header, footer, card containers, loading/error states for glass style |
+| `src/app/import/page.tsx` | ~1-80 | Import page | Apply glass styling to import page layout |
+| `src/components/ui/card.tsx` | 1-93 | Card primitive (shadcn) | **PRIMARY TARGET** - Add glassmorphism: `bg-white/10 backdrop-blur-xl border-white/20 shadow-xl` |
+| `src/components/ui/button.tsx` | 1-65 | Button primitive (shadcn) | Update variants with glass styling, frosted hover states |
+| `src/components/ui/tabs.tsx` | 1-92 | Tabs primitive (radix + shadcn) | Glass-style tab list, active indicator glow |
+| `src/components/ui/progress.tsx` | ~1-30 | Progress bar (radix) | Glass track, gradient fill |
+| `src/components/charts/FitnessScore.tsx` | 1-69 | Radial bar gauge (0-100) | Glass container, score text glow effect |
+| `src/components/charts/MetricCard.tsx` | 1-51 | Metric summary card + sparkline | Glass card styling, trend color adjustments |
+| `src/components/charts/TrendChart.tsx` | 1-84 | Area/line trend chart | Glass container, chart color palette for glass bg |
+| `src/components/charts/ProgressChart.tsx` | 1-51 | Horizontal bar chart | Glass container, bar styling |
+| `src/components/charts/ComparisonCard.tsx` | 1-47 | Week-over-week comparison | Glass card, delta color adjustments |
+| `src/components/dashboard/Overview.tsx` | 1-111 | Main dashboard layout | Section spacing, glass section headers |
+| `src/components/dashboard/CategoryDetail.tsx` | 1-90 | Expanded category view | Glass cards in grid, comparison cards |
+| `src/components/dashboard/RunningMetrics.tsx` | ~1-20 | Running wrapper | Minimal changes (passes props) |
+| `src/components/dashboard/GymMetrics.tsx` | ~1-20 | Gym wrapper | Minimal changes (passes props) |
+| `src/components/import/FileUpload.tsx` | 1-292 | Drag-drop upload | Glass upload area, progress card |
+| `src/components/import/SyncSetup.tsx` | ~1-60 | Sync status display | Glass card styling |
+| `src/lib/utils/formatters.ts` | ~1-80 | Score/trend colors | May need to adjust color values for glass bg contrast |
 
 ## Code Patterns and Conventions
 
-### Tailwind CSS v4 Pattern
-The project uses Tailwind CSS v4 with the new `@theme inline` syntax and OKLch color space CSS custom properties. All theming goes through CSS variables defined in `globals.css`.
-
+### Current CSS Variable Pattern (globals.css:49-82)
 ```css
-/* From src/app/globals.css:6-47 */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  /* ... maps CSS vars to Tailwind tokens */
-}
-```
-
-### Color Variable Pattern
-Colors use `:root` for light mode and `.dark` class for dark mode, using OKLch:
-
-```css
-/* From src/app/globals.css:49-82 */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -72,8 +75,9 @@ Colors use `:root` for light mode and `.dark` class for dark mode, using OKLch:
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
-  /* ... */
+  /* ... more variables */
 }
 
 .dark {
@@ -85,11 +89,8 @@ Colors use `:root` for light mode and `.dark` class for dark mode, using OKLch:
 }
 ```
 
-### Component Pattern (shadcn/ui style)
-Components use `cn()` utility for class merging and data-slot attributes:
-
-```tsx
-// From src/components/ui/card.tsx:5-16
+### Card Component Pattern (src/components/ui/card.tsx:5-16)
+```typescript
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -104,11 +105,8 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
 }
 ```
 
-### CVA Variant Pattern (Buttons)
-Buttons use `class-variance-authority` for variant management:
-
-```tsx
-// From src/components/ui/button.tsx:7-39
+### Button CVA Pattern (src/components/ui/button.tsx:7-39)
+```typescript
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all ...",
   {
@@ -116,284 +114,232 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         outline: "border bg-background shadow-xs hover:bg-accent ...",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground ...",
-        // ...
+      },
+      size: { default: "h-9 px-4 py-2 ...", sm: "h-8 ...", lg: "h-10 ..." },
+    },
+  }
+)
+```
+
+### Tabs CVA Pattern (src/components/ui/tabs.tsx:28-41)
+```typescript
+const tabsListVariants = cva(
+  "rounded-lg p-[3px] ... text-muted-foreground inline-flex w-fit items-center justify-center ...",
+  {
+    variants: {
+      variant: {
+        default: "bg-muted",
+        line: "gap-1 bg-transparent",
       },
     },
   }
 )
 ```
 
-### Chart Pattern (Recharts)
-Charts use Recharts `ResponsiveContainer` wrapper:
+### Component File Naming
+- PascalCase for component files: `FitnessScore.tsx`, `MetricCard.tsx`
+- Index barrel exports: `src/components/charts/index.ts`, `src/components/dashboard/index.ts`
+- kebab-case for utility files: `date-helpers.ts`, `formatters.ts`
 
-```tsx
-// From src/components/charts/TrendChart.tsx:48-82
+### Import Pattern
+```typescript
+import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatMetricValue, getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
+```
+
+### Chart Container Pattern
+```typescript
 <ResponsiveContainer width="100%" height={300}>
-  <Chart data={data}>
+  <AreaChart data={data}>
     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-    <XAxis dataKey="date" tickFormatter={formatDateTick} />
-    <YAxis tick={{ fontSize: 12 }} width={40} />
-    <Tooltip ... />
-    <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.15} />
-  </Chart>
+    {/* ... */}
+  </AreaChart>
 </ResponsiveContainer>
 ```
 
-### Font Loading Pattern
-Fonts loaded via `next/font/google` in layout:
-
-```tsx
-// From src/app/layout.tsx:5-13
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-```
-
-### Import/Export Pattern
-- Barrel exports from `index.ts` files in `charts/` and `dashboard/` directories
-- Components use named exports
-- UI components use function declarations (not arrow functions)
-
 ## Integration Points
 
-### Key Interfaces
+### Key Interfaces (src/types/analytics.ts)
 ```typescript
-// From src/types/analytics.ts (key types used by dashboard)
-type DateRange = '30d' | '60d' | '90d' | '365d';
-type TrendDirection = 'improving' | 'stable' | 'declining';
-
-interface DashboardData {
-  overall_score: number | null;
-  overall_trend: TrendDirection;
-  total_records: number;
-  categories: Record<string, CategoryData>;
-  last_sync: string | null;
-}
-
-interface CategoryData {
-  name: string;
-  score: number;
-  trend: TrendDirection;
-  metrics: MetricSummary[];
-  weekComparison?: WeekComparisonMetric[];
-}
-
 interface MetricSummary {
   label: string;
   value: number | null;
   unit: string;
-  trend: TrendDirection;
+  trend: 'improving' | 'stable' | 'declining';
   change_percent: number | null;
   sparkline_data: number[];
 }
+
+interface WeekComparisonMetric {
+  label: string;
+  unit: string;
+  thisWeek: number | null;
+  lastWeek: number | null;
+  delta: number | null;
+  deltaPercent: number | null;
+  higherIsBetter: boolean;
+}
+
+interface CategoryScore {
+  name: string;
+  score: number | null;
+  trend: 'improving' | 'stable' | 'declining';
+  metrics: MetricSummary[];
+  weekComparison: WeekComparisonMetric[];
+}
+
+interface DashboardData {
+  overall_score: number | null;
+  overall_trend: 'improving' | 'stable' | 'declining';
+  categories: {
+    running: CategoryScore;
+    gym: CategoryScore;
+  };
+  last_sync: string | null;
+}
+
+type DateRange = '30d' | '60d' | '90d' | '365d';
 ```
 
-### Formatter Utilities
+### Formatter Functions (src/lib/utils/formatters.ts)
 ```typescript
-// From src/lib/utils/formatters.ts:49-75
-// These return Tailwind class strings — must update if color palette changes
-export function getScoreColor(score: number): string {
-  if (score < 50) return 'text-red-500';
-  if (score < 70) return 'text-yellow-500';
-  return 'text-green-500';
-}
-
-export function getTrendColor(trend: 'improving' | 'stable' | 'declining'): string {
-  switch (trend) {
-    case 'improving': return 'text-green-500';
-    case 'stable': return 'text-gray-500';
-    case 'declining': return 'text-red-500';
-  }
-}
+function getScoreColor(score: number): string      // → 'text-red-500' | 'text-yellow-500' | 'text-green-500'
+function getScoreBgColor(score: number): string     // → 'bg-red-500' | 'bg-yellow-500' | 'bg-green-500'
+function getTrendIcon(trend: string): string        // → '↑' | '→' | '↓'
+function getTrendColor(trend: string): string       // → 'text-green-500' | 'text-gray-500' | 'text-red-500'
+function formatMetricValue(value: number, unit: string): string  // Localized formatting
 ```
-
-### Hardcoded Color Hex Values
-Several components use hardcoded hex colors that must be updated for glassmorphism:
-
-| Location | Color | Usage |
-|----------|-------|-------|
-| `FitnessScore.tsx:13-16` | `#ef4444`, `#eab308`, `#22c55e` | Score gauge colors (red/yellow/green) |
-| `FitnessScore.tsx:54` | `#e5e7eb` | Radial bar background ring |
-| `MetricCard.tsx:38` | `#6b7280` | Sparkline stroke color |
-| `TrendChart.tsx:31` | `#3b82f6` | Default chart line color |
-| `ProgressChart.tsx:11-14` | `#ef4444`, `#eab308`, `#22c55e` | Bar chart score colors |
-| `CategoryDetail.tsx:76` | `#6366f1` | Metric detail chart color (indigo) |
-| `Overview.tsx:103` | `#3b82f6` | Score trend chart color (blue) |
 
 ### Data Flow
-1. `page.tsx` fetches from `/api/analytics?range=X`
-2. Response parsed → state stored → passed to `<Overview data={data} />`
-3. Overview renders: FitnessScore, MetricCards, CategoryDetail, ProgressChart, TrendChart
-4. All cards built on `<Card>` base component
-5. All charts built on Recharts `<ResponsiveContainer>`
+```
+Mock Data (dashboard-preview.ts) → Dashboard page.tsx → Overview component
+  ↓                                                         ↓
+Preview mode auto-detected         FitnessScore, MetricCard, ProgressChart, TrendChart
+(hasRealDashboardData returns false when no SQLite data)
+```
 
 ## Testing Infrastructure
 
 ### Test Runner & Commands
-- Runner: Vitest 4.x
-- Config: `vitest.config.ts`
-- Run all: `npm test` (or `vitest run`)
-- Run specific: `npx vitest run <pattern>`
+- Runner: Vitest (v4.x)
+- Run all: `npm run test` or `vitest run`
+- Run specific: `vitest run __tests__/lib/mock/dashboard-preview.test.ts`
+- Watch: `npm run test:watch`
 
 ### Existing Test Files
-- `__tests__/` directory with tests for analytics, parsers, formatters
-- Tests are logic-focused (not visual), so glassmorphism changes shouldn't break them
+- `__tests__/api/analytics-route.test.ts` — API route responses
+- `__tests__/lib/analytics/fitness-score.test.ts` — Scoring algorithm
+- `__tests__/lib/mock/dashboard-preview.test.ts` — Preview mock data generation
+- `__tests__/integration/import-pipeline.test.ts` — Full import pipeline
 
 ### Test Patterns
-Tests use vitest's `describe/it/expect` pattern. Since this is a purely visual/styling change, existing tests should pass without modification. The only risk is if `formatters.ts` color utility functions are changed — those should be verified.
+```typescript
+import { describe, it, expect } from 'vitest';
+
+describe('Module Name', () => {
+  it('should do something', () => {
+    const result = someFunction(input);
+    expect(result).toBe(expectedValue);
+  });
+});
+```
+
+### Note on Testing for UI Changes
+This task is purely visual/CSS-focused. Existing tests should continue to pass since we are not modifying logic, data flow, or component interfaces. After implementation, run `npm run test` to verify no regressions, and `npm run build` to verify no type errors.
 
 ## Implementation Considerations
 
-### Glassmorphism Design System
+### Glassmorphism Design Principles
+The glassmorphism style requires these CSS properties working together:
 
-#### Core Glass Effect CSS
-The fundamental glassmorphism pattern for Tailwind:
-```
-backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg
-```
+1. **Background**: Semi-transparent fill (`background: rgba(255,255,255,0.1)` or `bg-white/10`)
+2. **Backdrop blur**: Frosted effect (`backdrop-filter: blur(16px)` or `backdrop-blur-xl`)
+3. **Border**: Subtle semi-transparent border (`border: 1px solid rgba(255,255,255,0.18)`)
+4. **Shadow**: Soft, elevated shadow (`box-shadow: 0 8px 32px rgba(0,0,0,0.12)`)
+5. **Background gradient**: Colorful gradient behind the glass elements (mesh gradient or radial gradients)
 
-For dark mode (which is the primary glassmorphism target):
-```
-backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl
-```
+### Approach: Phased Implementation
 
-#### Recommended Color Palette
-- **Background**: Deep gradient (dark blue/purple mesh gradient)
-- **Card glass**: `bg-white/5` to `bg-white/10` with `backdrop-blur-xl`
-- **Border**: `border-white/10` to `border-white/20`
-- **Text primary**: `white` or very light gray
-- **Text secondary**: `white/60` to `white/70`
-- **Accent colors**: Neon/vibrant tones that pop against glass (cyan, emerald, violet)
-- **Score colors**: Keep red/yellow/green but use more saturated/glowing versions
+**Phase 1: Foundation - CSS Theme & Background** (~50 lines CSS, 1 file)
+- Update `globals.css` with new glass-aware CSS variables
+- Add gradient mesh background utility class
+- Add glass card utility classes
+- Update dark mode variables for glass compatibility
 
-#### Background Gradient Options
-Option A: CSS mesh gradient on body:
-```css
-body {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-}
-```
+**Phase 2: UI Primitives - Card, Button, Tabs, Progress** (~4 files, ~80 lines changes)
+- Update Card to use glass styling (backdrop-blur, translucent bg, glass border)
+- Update Button variants for glass compatibility
+- Update Tabs with glass pill/active states
+- Update Progress with glass track
 
-Option B: Animated gradient with multiple color stops:
-```css
-body {
-  background: linear-gradient(
-    -45deg,
-    #0a0a1a, #1a0a2e, #0a1a2e, #0a0a1a
-  );
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-```
+**Phase 3: Page Layout - Header, Background, Footer** (~3 files, ~60 lines changes)
+- Add animated gradient background to layout.tsx
+- Update page.tsx header with glass header bar
+- Update footer sync card
 
-Option C: Static gradient with decorative blurred orbs (floating colored circles with blur):
-```css
-/* Decorative orbs positioned absolutely behind content */
-.orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.3; }
-```
+**Phase 4: Chart Components - Glass Containers** (~5 files, ~40 lines changes)
+- Update chart wrapper styling for glass context
+- Adjust chart colors for readability on glass bg
+- Update MetricCard, ComparisonCard glass styling
 
-#### Font Enhancement
-Current: Geist Sans (clean, modern — works well for glassmorphism)
-Options:
-- Keep Geist Sans (recommended — it's already a premium modern font)
-- Add Inter as fallback
-- Consider SF Pro-like weight variations for hierarchy
-
-#### Micro-Interactions
-- Card hover: subtle scale + glow (`hover:scale-[1.02] hover:shadow-lg/20`)
-- Button hover: glass brightening effect
-- Tab transitions: smooth background slide
-- Chart hover: tooltip with glass effect
-- Category expand/collapse: smooth height animation
-- Loading state: subtle pulse/shimmer animation
-
-### Approach
-
-**Phase 1: Foundation (globals.css + layout.tsx)**
-- Switch to dark-first design (glassmorphism works best on dark backgrounds)
-- Define new CSS variables for glass effects
-- Add gradient background to body/layout
-- Add optional decorative orbs/shapes
-
-**Phase 2: Base Components (ui/ folder)**
-- Update `card.tsx` — glass effect as default
-- Update `button.tsx` — glass variants
-- Update `tabs.tsx` — glass tab list
-- Update `progress.tsx` — glass progress bar
-
-**Phase 3: Dashboard Components**
-- Update `page.tsx` — header glass effect, overall layout
-- Update chart components — colors, tooltips, grid styles
-- Update `Overview.tsx` — section spacing for glass cards
-- Update `CategoryDetail.tsx` — heading styles
-- Update `import/page.tsx` and `FileUpload.tsx`
-
-**Phase 4: Interactions & Polish**
-- Add hover/focus transitions to cards and buttons
-- Add animation keyframes (gradient shift, shimmer)
-- Ensure all text has proper contrast against glass
-- Responsive adjustments
+**Phase 5: Animations & Interactions** (~30 lines CSS + ~20 lines component changes)
+- Card hover effects (scale, glow)
+- Tab transition animations
+- Gradient background animation (subtle float)
+- Card entrance animations (intersection observer or CSS)
 
 ### Risks
 
-1. **Text contrast**: Glass backgrounds can make text hard to read — need careful contrast ratios
-2. **Chart readability**: Recharts elements (axes, grid, tooltips) need adequate contrast against glass
-3. **Backdrop-blur performance**: Heavy use of `backdrop-filter: blur()` can impact performance on low-end devices
-4. **Light mode support**: Glassmorphism is primarily a dark-mode aesthetic; light mode may need different treatment
-5. **Hardcoded hex colors**: Multiple chart components use hardcoded hex values that need coordinated updates
-6. **Browser support**: `backdrop-filter` is well-supported in modern browsers but needs `-webkit-` prefix for some
+1. **Backdrop-filter performance**: `backdrop-filter: blur()` can be GPU-intensive with many stacked elements. Mitigate by limiting blur layers and using `will-change: transform` sparingly.
+
+2. **Chart readability**: Recharts renders SVG on potentially translucent backgrounds. Chart colors and grid lines need sufficient contrast. May need to add a subtle solid inner background for chart areas specifically.
+
+3. **Dark mode complexity**: Glassmorphism looks different in light vs dark. Dark mode typically uses `bg-white/5` to `bg-white/10` while light mode uses `bg-white/40` to `bg-white/70`. Both modes need separate tuning.
+
+4. **Existing hardcoded colors**: Some components use hardcoded Tailwind colors (e.g., `text-gray-600`, `bg-gray-50` in FileUpload.tsx) that bypass the theme system. These need to be migrated to theme-aware equivalents.
+
+5. **Accessibility contrast**: Semi-transparent backgrounds can reduce text contrast. Must verify WCAG AA contrast ratios are maintained, especially for muted-foreground text on glass surfaces.
 
 ### Scope Estimate
-- Files to modify: ~13-15 files
-- Files to create: 0 (all modifications to existing files)
-- Estimated lines of change: ~300-500 lines (mostly CSS variable changes and Tailwind class updates)
+- Files to modify: ~15 files
+- Files to create: 0 (all changes to existing files)
+- Estimated lines of change: ~300-400 lines across all files
+- New CSS: ~80-100 lines in globals.css
+- Component updates: ~200-250 lines of className changes
+
+### Dependencies
+- No new npm packages needed
+- Tailwind CSS 4 already supports `backdrop-blur-*` utilities natively
+- `tw-animate-css` already imported for animation utilities
+- May want to add `@keyframes` for custom gradient animation in globals.css
 
 ## Specification Assessment
 
-This feature NEEDS a UX specification. Reasons:
-- **Significant UX changes**: Complete visual redesign of the entire dashboard
-- **New design language**: Glassmorphism introduces a fundamentally different visual system
-- **Multiple interaction patterns**: Hover effects, animations, transitions need design decisions
-- **Color palette decisions**: Need to choose specific gradient colors, glass opacity levels, accent colors
-- **Font and typography decisions**: Weight hierarchy, sizes, colors against glass backgrounds
-- **Chart integration**: How Recharts elements look inside glass containers needs careful design
+**Does this feature need a UX specification?** Yes.
 
-However, the user has specifically requested "Glassmorphism Design Style" which is a well-known design pattern with established conventions. The specification stage can define:
-- Exact color values
-- Blur/opacity levels
-- Animation timing
-- Typography scale
-- Component-specific glass treatments
+**Reasoning:**
+- This is a significant visual redesign of the entire dashboard
+- Multiple UX decisions needed: exact color palette, gradient directions, blur intensities, animation timings, hover behaviors
+- Affects every user-facing component
+- The glassmorphism style has specific design constraints (contrast, readability, depth hierarchy) that benefit from UX specification review
+- Multiple interaction patterns (card hover, tab switch, entrance animations) need design decisions
+- Light mode vs dark mode glass treatment needs specification
 
 **Needs Specification**: Yes
 
 ## Questions for Human Review
 
-1. **Dark mode only or both?** Glassmorphism works best on dark backgrounds. Should we:
-   - Make the app dark-mode only (simplest, best glass effect)
-   - Support both light and dark (light mode would have a different, lighter glass treatment)
-
-2. **Background style**: Prefer a static gradient, animated gradient, or gradient + floating orbs?
-
-3. **Font**: Keep Geist Sans or switch to a different font family?
-
-4. **Accent color scheme**: Current app uses green/yellow/red for scores. Should we keep this or switch to more vibrant neon tones (cyan/emerald/violet)?
-
-5. **Animation intensity**: Minimal (just hover transitions) or rich (gradient animations, loading shimmers, card entrance animations)?
+1. **Dark mode preference**: Should the glassmorphism be optimized primarily for dark mode (where it looks most dramatic) or should it work equally well in both light and dark modes?
+2. **Font change**: The current Geist Sans font works well with glassmorphism. Should we keep it, or swap to another glass-friendly font like Inter or Plus Jakarta Sans?
+3. **Background gradient**: What color palette for the background gradient? Options:
+   - Purple/blue/teal (common glassmorphism palette)
+   - Health-themed (greens, blues)
+   - Neutral with accent pops
+4. **Animation intensity**: Subtle (barely noticeable, professional) or expressive (noticeable hover effects, gradient movement)?
+5. **Import page**: Should the import page also get the full glassmorphism treatment, or keep it simpler?
 
 ## Next Steps
 
-Ready for specification phase. The specification should define:
-1. Exact glassmorphism parameters (blur, opacity, border opacity)
-2. Background gradient colors
-3. Color palette for scores and accents
-4. Animation/interaction specifications
-5. Typography decisions
-6. Component-by-component visual treatment
+Ready for **specification phase** - needs UX specification to define exact glassmorphism parameters (colors, blur values, animations, interaction behaviors) before implementation planning.
