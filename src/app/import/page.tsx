@@ -17,10 +17,10 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-screen relative z-10">
+      <header className="bg-white/[0.08] backdrop-blur-[20px] border-b border-white/12 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-white">
             <Link href="/">Ralph</Link>
           </h1>
           <nav className="flex gap-4">
@@ -32,7 +32,7 @@ export default function ImportPage() {
       </header>
 
       <main className="container mx-auto max-w-2xl px-6 py-8">
-        <h2 className="mb-6 text-xl font-semibold">Import Apple Health Data</h2>
+        <h2 className="mb-6 text-xl font-bold text-white">Import Apple Health Data</h2>
 
         <FileUpload onUploadComplete={handleUploadComplete} />
 
@@ -40,7 +40,7 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle>How to Export Apple Health Data</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+          <CardContent className="text-sm text-white/60">
             <ol className="list-inside list-decimal space-y-2">
               <li>Open the <strong>Health</strong> app on your iPhone</li>
               <li>Tap your profile picture in the top right</li>
