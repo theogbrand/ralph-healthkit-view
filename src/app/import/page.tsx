@@ -18,9 +18,9 @@ export default function ImportPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b-3 border-foreground">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-3xl font-black tracking-tight">
             <Link href="/">Ralph</Link>
           </h1>
           <nav className="flex gap-4">
@@ -32,7 +32,7 @@ export default function ImportPage() {
       </header>
 
       <main className="container mx-auto max-w-2xl px-6 py-8">
-        <h2 className="mb-6 text-xl font-semibold">Import Apple Health Data</h2>
+        <h2 className="mb-6 text-2xl font-black tracking-tight">Import Apple Health Data</h2>
 
         <FileUpload onUploadComplete={handleUploadComplete} />
 

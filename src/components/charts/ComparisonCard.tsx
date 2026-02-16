@@ -26,8 +26,8 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
   return (
     <Card>
       <CardHeader className="pb-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
+        <CardTitle className="text-sm font-bold text-muted-foreground">{label}</CardTitle>
+        <p className="text-2xl font-black">
           {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
         </p>
       </CardHeader>
@@ -36,7 +36,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
           Last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
         </span>
         {deltaPercent != null && (
-          <span className={`text-sm font-semibold ${deltaColor}`}>
+          <span className={`text-sm font-bold ${deltaColor}`}>
             {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
           </span>
         )}

@@ -50,18 +50,18 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
           >
             <RadialBar
               dataKey="value"
-              cornerRadius={8}
-              background={{ fill: '#e5e7eb' }}
+              cornerRadius={4}
+              background={{ fill: '#e8e6de' }}
             />
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`${fontSize} font-bold`} style={{ color }}>
+          <span className={`${fontSize} font-black`} style={{ color }}>
             {Math.round(score)}
           </span>
         </div>
       </div>
-      <span className={`${trendSize} font-medium ${getTrendColor(trend)}`}>
+      <span className={`${trendSize} font-bold ${getTrendColor(trend)}`}>
         {getTrendIcon(trend)} {trend}
       </span>
     </div>
