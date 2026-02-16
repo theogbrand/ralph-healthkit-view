@@ -35,7 +35,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke="#7b8fba"
                     strokeWidth={1.5}
                     dot={false}
                   />
