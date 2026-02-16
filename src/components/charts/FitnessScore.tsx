@@ -10,9 +10,9 @@ interface FitnessScoreProps {
 }
 
 function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+  if (score < 50) return '#f87171';
+  if (score < 70) return '#fbbf24';
+  return '#34d399';
 }
 
 export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
@@ -23,7 +23,7 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
   if (score === null) {
     return (
       <div
-        className="flex items-center justify-center text-muted-foreground"
+        className="flex items-center justify-center text-white/60"
         style={{ width: dimension, height: dimension }}
       >
         No score
@@ -51,7 +51,7 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
             <RadialBar
               dataKey="value"
               cornerRadius={8}
-              background={{ fill: '#e5e7eb' }}
+              background={{ fill: 'rgba(255, 255, 255, 0.06)' }}
             />
           </RadialBarChart>
         </ResponsiveContainer>

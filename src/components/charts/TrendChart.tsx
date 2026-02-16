@@ -28,12 +28,12 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
+  color = '#8b5cf6',
   showArea = true,
 }: TrendChartProps) {
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+      <div className="flex h-[300px] items-center justify-center text-white/60">
         No trend data available
       </div>
     );
@@ -47,17 +47,25 @@ export function TrendChart({
   return (
     <ResponsiveContainer width="100%" height={300}>
       <Chart data={data}>
-        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+        <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
         <XAxis
           dataKey="date"
           tickFormatter={formatDateTick}
           interval={tickInterval}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.40)' }}
+          stroke="rgba(255,255,255,0.10)"
         />
-        <YAxis tick={{ fontSize: 12 }} width={40} />
+        <YAxis tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.40)' }} width={40} stroke="rgba(255,255,255,0.10)" />
         <Tooltip
           labelFormatter={(label) => formatDateTick(String(label))}
           formatter={(value) => [Number(value).toFixed(1), 'Value']}
+          contentStyle={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '12px',
+            color: 'rgba(255,255,255,0.95)',
+          }}
         />
         {showArea ? (
           <Area

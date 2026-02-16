@@ -28,7 +28,7 @@ export class ChartErrorBoundary extends Component<Props, State> {
         this.props.fallback ?? (
           <Card>
             <CardContent className="flex items-center justify-center py-8">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/60">
                 Unable to render chart. Try refreshing the page.
               </p>
             </CardContent>

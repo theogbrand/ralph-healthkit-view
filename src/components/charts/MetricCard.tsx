@@ -16,12 +16,12 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-white/60">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-bold text-white">
               {value !== null ? formatMetricValue(value, unit) : '--'}
             </p>
             <p className={`mt-1 text-sm font-medium ${getTrendColor(trend)}`}>
@@ -35,7 +35,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke="#8b5cf6"
                     strokeWidth={1.5}
                     dot={false}
                   />
