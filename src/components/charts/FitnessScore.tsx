@@ -10,9 +10,9 @@ interface FitnessScoreProps {
 }
 
 function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+  if (score < 50) return '#c27a6e';  /* Monet sunset coral */
+  if (score < 70) return '#c4a24e';  /* Monet haystack gold */
+  return '#6a9e7f';                  /* Monet garden green */
 }
 
 export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
@@ -51,12 +51,12 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
             <RadialBar
               dataKey="value"
               cornerRadius={8}
-              background={{ fill: '#e5e7eb' }}
+              background={{ fill: '#e8e0d4' }}
             />
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`${fontSize} font-bold`} style={{ color }}>
+          <span className={`${fontSize} font-bold`} style={{ color, fontFamily: 'var(--font-playfair), serif' }}>
             {Math.round(score)}
           </span>
         </div>

@@ -28,7 +28,7 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
+  color = '#5b7fa6',
   showArea = true,
 }: TrendChartProps) {
   if (!data.length) {
