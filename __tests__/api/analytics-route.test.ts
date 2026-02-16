@@ -26,9 +26,12 @@ vi.mock('@/lib/analytics/metrics', () => ({
 import { GET } from '@/app/api/analytics/route';
 
 describe('GET /api/analytics', () => {
+  const originalVercel = process.env.VERCEL;
+
   beforeEach(() => {
     getSyncStatusMock.mockReset();
     saveFitnessScoreMock.mockReset();
+    process.env.VERCEL = originalVercel;
   });
 
   it('returns empty analytics payload when SQLite is unavailable', async () => {
@@ -60,5 +63,21 @@ describe('GET /api/analytics', () => {
 
     expect(res.status).toBe(500);
     expect(body.error).toContain('Unexpected analytics failure');
+  });
+
+  it('returns empty analytics payload for non-database errors on Vercel', async () => {
+    process.env.VERCEL = '1';
+    getSyncStatusMock.mockImplementation(() => {
+      throw new Error('Unexpected analytics failure');
+    });
+
+    const req = new Request('http://localhost/api/analytics?range=30d') as unknown as NextRequest;
+    const res = await GET(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-analytics-fallback')).toBe('1');
+    expect(body.total_records).toBe(0);
+    expect(body.overall_score).toBeNull();
   });
 });
