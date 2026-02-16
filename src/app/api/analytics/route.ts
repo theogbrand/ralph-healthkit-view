@@ -9,6 +9,11 @@ export const runtime = 'nodejs';
 
 const VALID_RANGES = new Set<DateRange>(['30d', '60d', '90d', '365d']);
 
+type AnalyticsApiResponse = DashboardData & {
+  score_history: Array<{ date: string; value: number }>;
+  total_records: number;
+};
+
 function jsonResponse(body: unknown, init?: ResponseInit): Response {
   const text = JSON.stringify(body);
   const headers = new Headers(init?.headers);
@@ -20,6 +25,60 @@ function jsonResponse(body: unknown, init?: ResponseInit): Response {
     ...init,
     headers,
   });
+}
+
+function getEmptyAnalyticsResponse(): AnalyticsApiResponse {
+  return {
+    overall_score: null,
+    overall_trend: 'stable',
+    categories: {
+      running: {
+        name: 'Running',
+        score: null,
+        trend: 'stable',
+        metrics: [],
+        weekComparison: [],
+      },
+      gym: {
+        name: 'Gym',
+        score: null,
+        trend: 'stable',
+        metrics: [],
+        weekComparison: [],
+      },
+    },
+    last_sync: null,
+    score_history: [],
+    total_records: 0,
+  };
+}
+
+function isDatabaseAvailabilityError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  const patterns = [
+    'sqlite',
+    'better-sqlite3',
+    'unable to open database file',
+    'readonly database',
+    'read-only',
+    'database is locked',
+    'bindings file',
+  ];
+  return patterns.some((pattern) => message.includes(pattern));
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+function shouldUseEmptyAnalyticsFallback(error: unknown): boolean {
+  // Temporary Vercel-safe behavior: never hard-fail analytics in serverless.
+  // This keeps dashboard preview mode available even when local SQLite access
+  // or other runtime constraints break analytics computation.
+  if (process.env.VERCEL === '1') return true;
+  return isDatabaseAvailabilityError(error);
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -89,8 +148,22 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     return jsonResponse({ ...data, score_history, total_records: sync.total_records });
   } catch (error) {
+    const message = getErrorMessage(error);
+
+    // Make cloud debugging possible from function logs.
+    console.error('[api/analytics] request failed', { message });
+
+    // Temporary workaround for serverless environments where local SQLite
+    // is unavailable. Return an empty analytics payload so the client can
+    // fall back to mock preview mode instead of showing a hard error.
+    if (shouldUseEmptyAnalyticsFallback(error)) {
+      return jsonResponse(getEmptyAnalyticsResponse(), {
+        headers: { 'x-analytics-fallback': '1' },
+      });
+    }
+
     return jsonResponse(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: message },
       { status: 500 }
     );
   }
