@@ -1,7 +1,6 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
@@ -26,13 +25,11 @@ export class ChartErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <Card>
-            <CardContent className="flex items-center justify-center py-8">
-              <p className="text-sm text-muted-foreground">
-                Unable to render chart. Try refreshing the page.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-[var(--apple-card)] rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-center py-8">
+            <p className="apple-caption">
+              Unable to display this chart
+            </p>
+          </div>
         )
       );
     }
