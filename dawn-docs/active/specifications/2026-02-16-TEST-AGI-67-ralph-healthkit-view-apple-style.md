@@ -241,8 +241,10 @@ How do we know the UX is successful?
 
 ## Open Questions
 
-1. **Preview badge styling**: Should the preview badge match Apple's blue tint or keep the current amber color to stand out as a "non-production" indicator? (Specification assumes blue to match the overall Apple language, but amber could be a deliberate choice.)
-2. **Score ring animation on re-render**: When the date range changes and the score updates, should the ring re-animate from 0 or smoothly transition from the old value to the new? (Specification assumes re-animate from 0 for stronger visual feedback.)
+1. **Preview badge styling**: Should the preview badge match Apple's blue tint or keep the current amber color to stand out as a "non-production" indicator? Recommendation: blue to match the overall Apple language, but amber could be a deliberate "non-production" signal.
+2. **Score ring animation on re-render**: When the date range changes and the score updates, should the ring re-animate from 0 or smoothly transition from the old value to the new? Recommendation: re-animate from 0 for stronger visual feedback.
+3. **Activity Rings vs. Single Radial Gauge**: The current FitnessScore uses a single radial gauge. Apple Health uses concentric Activity Rings (Move/Exercise/Stand). Recommendation: keep single ring — the app has one overall score, and concentric rings would require inventing a mapping that doesn't exist in the data model.
+4. **Staggered card entry on page load**: Should cards stagger in one-by-one (50ms delay each) or appear all at once? Recommendation: all at once with just the score ring animating — staggered entry can feel slow on repeat visits.
 
 ## Simplification Opportunities
 
@@ -251,3 +253,26 @@ How do we know the UX is successful?
 3. **Simplify date range labels**: Shorten "30 Days / 60 Days / 90 Days / 1 Year" to "30D / 60D / 90D / 1Y" for a tighter segmented control.
 4. **Remove redundant Import Data button from footer**: One clear Import CTA in the header is enough. The footer button adds clutter.
 5. **Simplify error/loading states**: Instead of separate loading text in a card, use skeleton shimmer placeholders that match the final layout shape — feels faster and more polished.
+6. **Consolidate duplicate score color functions**: Research identified duplicate `getScoreHex()` in FitnessScore.tsx and ProgressChart.tsx. Unify into a single utility using the new Apple color palette.
+7. **Remove top border on header**: Apple surfaces don't use top-edge borders. The white header on `#F2F2F7` background provides sufficient visual separation.
+8. **Remove "Import Data" button from header when data exists**: If the user has already imported data, move import to a less prominent position, keeping the header minimal.
+
+## Implementation Notes for Planner
+
+The following files need changes (pure visual redesign — no data model, API, or business logic changes):
+
+| File | Change Type |
+|------|-------------|
+| `src/app/layout.tsx` | Replace Geist fonts with `-apple-system` font stack |
+| `src/app/globals.css` | Complete overhaul — Apple color palette, new radius/shadow tokens, animation keyframes |
+| `src/app/page.tsx` | Restyle header, replace Tabs with segmented control, update loading/empty/error states |
+| `src/components/ui/card.tsx` | Remove border, update shadow, increase border-radius to 16px |
+| `src/components/ui/tabs.tsx` | Convert to Apple segmented control appearance |
+| `src/components/dashboard/Overview.tsx` | Update section layout, spacing, card grid |
+| `src/components/dashboard/CategoryDetail.tsx` | Restyle metric grid, section headers |
+| `src/components/charts/FitnessScore.tsx` | Refined ring gauge — thicker stroke, rounded caps, Apple colors, animation |
+| `src/components/charts/MetricCard.tsx` | Apple Health metric card style — large value, small unit, accent bar |
+| `src/components/charts/TrendChart.tsx` | Gradient fill, clean axes, Apple chart aesthetics |
+| `src/components/charts/ProgressChart.tsx` | Rounded bars, Apple score colors |
+| `src/components/charts/ComparisonCard.tsx` | Apple comparison UI with delta badges |
+| `src/lib/utils/formatters.ts` | Update score/trend colors to Apple palette |
