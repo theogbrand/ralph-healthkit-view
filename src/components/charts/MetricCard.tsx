@@ -21,7 +21,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-black">
               {value !== null ? formatMetricValue(value, unit) : '--'}
             </p>
             <p className={`mt-1 text-sm font-bold ${getTrendColor(trend)}`}>

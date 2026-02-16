@@ -51,7 +51,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
           return (
             <button
               key={key}
-              className="text-left"
+              className="text-left w-full transition-transform hover:-translate-y-0.5 active:translate-y-0"
               onClick={() => toggle(key)}
             >
               <MetricCard

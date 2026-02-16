@@ -53,7 +53,7 @@ export function CategoryDetail({ title, metrics, dateRange, weekComparison }: Ca
                   {getTrendIcon(metric.trend)} {metric.trend}
                 </span>
               </div>
-              <p className="text-xl font-bold">
+              <p className="text-xl font-black">
                 {metric.value !== null ? formatMetricValue(metric.value, metric.unit) : '--'}
               </p>
               {metric.change_percent !== null && (
