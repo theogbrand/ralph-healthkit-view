@@ -70,7 +70,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 rounded-full border border-purple-300 bg-purple-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-purple-700">
                 <span aria-hidden>●</span>
                 Preview
               </span>

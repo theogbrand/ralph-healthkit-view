@@ -28,7 +28,7 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
+  color = '#5b7ba8',  /* Monet deep water blue */
   showArea = true,
 }: TrendChartProps) {
   if (!data.length) {
