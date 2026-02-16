@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { DashboardData, DateRange } from '@/types/analytics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { FitnessScore } from '@/components/charts/FitnessScore';
 import { MetricCard } from '@/components/charts/MetricCard';
 import { ProgressChart } from '@/components/charts/ProgressChart';
@@ -31,44 +31,47 @@ export function Overview({ data, dateRange }: OverviewProps) {
   const toggle = (key: string) => setExpanded((prev) => (prev === key ? null : key));
 
   return (
-    <div className="space-y-8">
-      {/* Fitness Score */}
+    <div className="space-y-6">
+      {/* Fitness Score - hero element without wrapping card */}
       <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>Overall Fitness Score</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <FitnessScore score={data.overall_score} trend={data.overall_trend} />
-          </CardContent>
-        </Card>
+        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-[var(--text-primary)] mb-4">
+          Fitness Score
+        </h2>
+        <div className="flex items-center justify-center py-4">
+          <FitnessScore score={data.overall_score} trend={data.overall_trend} />
+        </div>
       </section>
 
       {/* Category Cards — click to expand details */}
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {CATEGORY_CONFIG.map(({ key }) => {
-          const cat = data.categories[key];
-          return (
-            <button
-              key={key}
-              className="text-left"
-              onClick={() => toggle(key)}
-            >
-              <MetricCard
-                title={cat.name}
-                value={cat.score}
-                unit="score"
-                trend={cat.trend}
-                sparklineData={cat.metrics[0]?.sparkline_data}
-              />
-            </button>
-          );
-        })}
+      <section>
+        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-[var(--text-primary)] mb-4">
+          Categories
+        </h2>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {CATEGORY_CONFIG.map(({ key }) => {
+            const cat = data.categories[key];
+            return (
+              <button
+                key={key}
+                className="text-left cursor-pointer group active:scale-[0.98] transition-transform duration-150"
+                onClick={() => toggle(key)}
+              >
+                <MetricCard
+                  title={cat.name}
+                  value={cat.score}
+                  unit="score"
+                  trend={cat.trend}
+                  sparklineData={cat.metrics[0]?.sparkline_data}
+                />
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       {/* Expanded Category Detail */}
       {expanded && (
-        <section>
+        <section className="animate-[fadeIn_0.3s_ease-out]">
           {CATEGORY_CONFIG.filter(({ key }) => key === expanded).map(({ key, Component }) => (
             <Component
               key={key}
@@ -82,11 +85,11 @@ export function Overview({ data, dateRange }: OverviewProps) {
 
       {/* Category Breakdown */}
       <section>
+        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-[var(--text-primary)] mb-4">
+          Category Breakdown
+        </h2>
         <Card>
-          <CardHeader>
-            <CardTitle>Category Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="py-4">
             <ProgressChart categories={data.categories} />
           </CardContent>
         </Card>
@@ -95,12 +98,12 @@ export function Overview({ data, dateRange }: OverviewProps) {
       {/* Score Trend */}
       {data.score_history.length > 0 && (
         <section>
+          <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-[var(--text-primary)] mb-4">
+            Score Trend
+          </h2>
           <Card>
-            <CardHeader>
-              <CardTitle>Score Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+            <CardContent className="py-4">
+              <TrendChart data={data.score_history} dateRange={dateRange} color="#00D4FF" />
             </CardContent>
           </Card>
         </section>
