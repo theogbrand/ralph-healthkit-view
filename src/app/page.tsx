@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import type { DateRange } from '@/types/analytics';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Overview } from '@/components/dashboard';
@@ -17,10 +16,10 @@ import {
 type ApiResponse = DashboardApiResponse;
 
 const RANGES: { value: DateRange; label: string }[] = [
-  { value: '30d', label: '30 Days' },
-  { value: '60d', label: '60 Days' },
-  { value: '90d', label: '90 Days' },
-  { value: '365d', label: '1 Year' },
+  { value: '30d', label: '30D' },
+  { value: '60d', label: '60D' },
+  { value: '90d', label: '90D' },
+  { value: '365d', label: '1Y' },
 ];
 
 export default function Home() {
@@ -65,18 +64,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Ralph</h1>
+      <header className="px-5 pt-6 pb-4 max-w-[640px] mx-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="apple-title">Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
-                <span aria-hidden>●</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--apple-ring-red)] px-2.5 py-0.5 text-[13px] font-semibold text-white">
                 Preview
               </span>
             )}
           </div>
-          <nav className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {hasRealData && !loading && !error && (
               <Button
                 size="sm"
@@ -88,23 +86,21 @@ export default function Home() {
               </Button>
             )}
             {isPreviewMode && (
-              <span className="text-sm text-muted-foreground">
-                Preview dataset
-              </span>
+              <span className="apple-caption">Preview dataset</span>
             )}
             {!isPreviewMode && data?.last_sync && (
-              <span className="text-sm text-muted-foreground">
-                Last sync: {timeAgo(data.last_sync)}
+              <span className="apple-caption">
+                {timeAgo(data.last_sync)}
               </span>
             )}
             <Link href="/import">
-              <Button variant="outline">Import Data</Button>
+              <Button variant="outline" size="sm">Import</Button>
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
+      <main className="max-w-[640px] mx-auto px-5 pb-8">
         {/* Date Range Selector */}
         <div className="mb-6">
           <Tabs value={range} onValueChange={(v) => setRange(v as DateRange)}>
@@ -120,64 +116,75 @@ export default function Home() {
 
         {/* Loading State */}
         {loading && (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="flex items-center justify-center py-16">
-                <div className="text-muted-foreground">Loading dashboard...</div>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            {/* Ring skeleton */}
+            <div className="flex justify-center py-8">
+              <div
+                className="rounded-full bg-[var(--apple-separator)]"
+                style={{
+                  width: 180,
+                  height: 180,
+                  background: 'linear-gradient(90deg, var(--apple-separator) 25%, #ECECF1 50%, var(--apple-separator) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s ease-in-out infinite',
+                }}
+              />
+            </div>
+            {/* Card skeletons */}
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-24 rounded-[20px]"
+                style={{
+                  background: 'linear-gradient(90deg, var(--apple-separator) 25%, #ECECF1 50%, var(--apple-separator) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s ease-in-out infinite',
+                }}
+              />
+            ))}
+            {/* Chart skeleton */}
+            <div
+              className="h-48 rounded-[20px]"
+              style={{
+                background: 'linear-gradient(90deg, var(--apple-separator) 25%, #ECECF1 50%, var(--apple-separator) 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s ease-in-out infinite',
+              }}
+            />
           </div>
         )}
 
         {/* Error State */}
         {!loading && error && (
-          <Card>
-            <CardContent className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <p className="text-muted-foreground">{error}</p>
-                <Button className="mt-4" variant="outline" onClick={() => fetchData(range)}>
-                  Retry
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center gap-4 py-16">
+            <h2 className="apple-section-header">Something went wrong</h2>
+            <p className="apple-body text-[var(--apple-text-secondary)]">
+              We couldn&apos;t load your health data. Please try again.
+            </p>
+            <Button variant="secondary" onClick={() => fetchData(range)}>
+              Retry
+            </Button>
+          </div>
         )}
 
         {/* Empty State */}
         {!loading && !error && !hasData && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
-              <p className="text-lg text-muted-foreground">
-                No data yet. Import your Apple Health data to get started.
-              </p>
-              <Link href="/import">
-                <Button>Import Data</Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center gap-4 py-16">
+            <h2 className="apple-section-header">No Health Data Yet</h2>
+            <p className="apple-body text-[var(--apple-text-secondary)]">
+              Import your first dataset to get started.
+            </p>
+            <Link href="/import">
+              <Button>Import Data</Button>
+            </Link>
+          </div>
         )}
 
         {/* Dashboard Content */}
         {!loading && !error && hasData && data && (
-          <>
+          <div style={{ animation: 'fade-in 250ms ease-out' }}>
             <Overview data={data} dateRange={range} />
-
-            {/* Sync Status Footer */}
-            <section className="mt-8">
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
-                  <div className="text-sm text-muted-foreground">
-                    {isPreviewMode
-                      ? 'Preview dataset'
-                      : `Last sync: ${data.last_sync ? timeAgo(data.last_sync) : 'Never'}`}
-                  </div>
-                  <Link href="/import">
-                    <Button size="sm">Import Data</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </section>
-          </>
+          </div>
         )}
       </main>
     </div>
