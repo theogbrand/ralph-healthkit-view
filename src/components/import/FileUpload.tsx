@@ -151,10 +151,10 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
   return (
     <div className="space-y-4">
       <Card
-        className={`p-8 border-2 border-dashed transition-colors ${
+        className={`p-8 !border-3 border-dashed transition-colors ${
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-foreground bg-accent/10 !shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]'
+            : 'border-foreground/50 hover:border-foreground'
         } ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -163,7 +163,7 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
       >
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           {/* Upload Icon */}
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-md border-2 border-foreground bg-accent/10 flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
             <svg
               className="w-8 h-8 text-primary"
               fill="none"
@@ -181,13 +181,13 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
 
           {/* Instructions */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-bold mb-2">
               Upload Apple Health Export
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Drag and drop your export.zip file here, or click to browse
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Supports .zip and .xml files
             </p>
           </div>
@@ -217,10 +217,10 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="font-medium">Processing...</span>
-              <span className="text-gray-600">{uploadProgress}%</span>
+              <span className="text-muted-foreground">{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} />
-            <p className="text-xs text-gray-600">{uploadMessage}</p>
+            <p className="text-xs text-muted-foreground">{uploadMessage}</p>
           </div>
         </Card>
       )}
@@ -256,28 +256,28 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
 
             {uploadStats && (
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Records Imported</p>
-                  <p className="text-xl font-bold text-gray-900">
+                <div className="p-3 bg-muted rounded-md border-2 border-foreground">
+                  <p className="text-muted-foreground">Records Imported</p>
+                  <p className="text-xl font-bold text-foreground">
                     {uploadStats.recordsImported.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Workouts Imported</p>
-                  <p className="text-xl font-bold text-gray-900">
+                <div className="p-3 bg-muted rounded-md border-2 border-foreground">
+                  <p className="text-muted-foreground">Workouts Imported</p>
+                  <p className="text-xl font-bold text-foreground">
                     {uploadStats.workoutsImported.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Date Range</p>
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="p-3 bg-muted rounded-md border-2 border-foreground">
+                  <p className="text-muted-foreground">Date Range</p>
+                  <p className="text-sm font-medium text-foreground">
                     {formatDate(uploadStats.dateRange.earliest)} -{' '}
                     {formatDate(uploadStats.dateRange.latest)}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <p className="text-gray-600">Processing Time</p>
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="p-3 bg-muted rounded-md border-2 border-foreground">
+                  <p className="text-muted-foreground">Processing Time</p>
+                  <p className="text-sm font-medium text-foreground">
                     {formatTime(uploadStats.processingTimeMs)}
                   </p>
                 </div>

@@ -66,14 +66,14 @@ export function TrendChart({
             stroke={color}
             fill={color}
             fillOpacity={0.15}
-            strokeWidth={2}
+            strokeWidth={3}
           />
         ) : (
           <Line
             type="monotone"
             dataKey="value"
             stroke={color}
-            strokeWidth={2}
+            strokeWidth={3}
             dot={false}
           />
         )}

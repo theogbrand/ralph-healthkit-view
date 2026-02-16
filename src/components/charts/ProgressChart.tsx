@@ -36,10 +36,10 @@ export function ProgressChart({ categories }: ProgressChartProps) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 13 }} width={70} />
+        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fontWeight: 700 }} />
+        <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fontWeight: 700 }} width={70} />
         <Tooltip formatter={(value) => [`${Math.round(Number(value))}/100`, 'Score']} />
-        <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={24}>
+        <Bar dataKey="score" radius={0} barSize={28} stroke="#1a1a1a" strokeWidth={2}>
           {data.map((entry) => (
             <Cell key={entry.name} fill={getScoreHex(entry.score)} />
           ))}
