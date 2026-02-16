@@ -6,65 +6,65 @@
 
 ## Summary
 
-The task is to plan and implement a comprehensive Apple-style UI makeover of the Ralph HealthKit dashboard. This involves redesigning the visual layer across all dashboard components — styling, fonts, colors, spacing, animations, and interactions — to match Apple's HealthKit / Health app design language. The app currently uses a neutral shadcn/ui + Tailwind setup. The goal is a polished, premium Apple-like experience with smooth transitions, refined typography, and HealthKit-inspired color semantics.
+The task is to plan and execute a comprehensive Apple-style UI makeover of the Ralph HealthKit dashboard. This involves redesigning the entire visual language to match Apple's Health/Fitness app aesthetic — including typography (SF Pro-like), color system, card styling, gauge/chart design, animations, and interactions. A live preview must be maintained throughout so the user can manually monitor changes.
 
 ## Requirements Analysis
 
 From the issue description:
-1. **Apple-style UI makeover** — The entire dashboard needs to adopt Apple's design language (HealthKit-inspired)
-2. **Styling** — New color system, card styles, shadows, glassmorphism, gradients
-3. **Fonts** — Apple-like typography (SF Pro equivalents, weight hierarchy, letter-spacing)
-4. **Interactions** — Smooth animations, hover states, micro-interactions, transitions
-5. **Live Preview** — A running dev server for manual monitoring of changes
+1. **Apple-style UI makeover** — Redesign the dashboard to match Apple's Health/HealthKit visual language
+2. **Styling** — New color palette, card designs, gradients, shadows matching Apple HIG
+3. **Fonts** — Apple-like typography (SF Pro family or equivalent web-safe alternative)
+4. **Interactions** — Smooth transitions, hover states, expand/collapse animations
+5. **Live Preview** — Dev server must be running for manual monitoring of changes
 
-### Apple Health Design Language Key Traits:
+### Apple Health/Fitness Design Reference
+
+Apple Health app characteristics:
 - Clean white/light backgrounds with generous whitespace
-- Rounded, elevated cards with subtle shadows (no hard borders)
-- Bold SF Pro Display headings, regular SF Pro Text body
-- Colored category accents (red for Heart, green for Activity, blue for Fitness)
-- Circular progress rings for scores (Activity rings style)
-- Smooth spring animations and transitions
-- Minimal chrome, content-focused layouts
-- Subtle gradients and depth cues
+- SF Pro Display for headings, SF Pro Text for body
+- Colored ring/arc gauges (Activity Rings style)
+- Cards with subtle rounded corners (16-20px radius), slight shadows, no hard borders
+- Category color coding: green (Move/Activity), cyan/blue (Exercise), yellow (Stand), red (Heart)
+- Metric values displayed large and bold with small units
+- Smooth spring animations for transitions
+- Trend arrows and sparklines
+- Section headers are large, left-aligned, bold
 - Segmented controls (not tab bars) for date selectors
+- Minimal chrome, content-focused layouts
 
 ## File Map
 
 | File | Lines | Role | Relevance |
 |------|-------|------|-----------|
-| `src/app/globals.css` | 1-126 | Global styles & CSS variables | **Primary** — Rewrite color system, add Apple-style tokens, animation keyframes |
-| `src/app/layout.tsx` | 1-35 | Root layout, font loading | **Modify** — Change to SF Pro-equivalent fonts (Inter or system -apple-system) |
-| `src/app/page.tsx` | 1-205 | Dashboard home page | **Modify** — Header redesign, date selector as segmented control, layout spacing |
-| `src/components/dashboard/Overview.tsx` | 1-110 | Dashboard layout coordinator | **Modify** — Grid layout, section spacing, card arrangement |
-| `src/components/dashboard/CategoryDetail.tsx` | 1-89 | Expanded metric detail view | **Modify** — Card styling, metric list layout, chart integration |
-| `src/components/dashboard/RunningMetrics.tsx` | 1-14 | Running category wrapper | Minor — passes through to CategoryDetail |
-| `src/components/dashboard/GymMetrics.tsx` | 1-14 | Gym category wrapper | Minor — passes through to CategoryDetail |
-| `src/components/charts/FitnessScore.tsx` | 1-69 | Radial fitness score circle | **Major** — Redesign as Apple Activity rings style |
-| `src/components/charts/MetricCard.tsx` | 1-50 | Summary card with sparkline | **Major** — Apple-style metric card with colored accents |
-| `src/components/charts/ProgressChart.tsx` | 1-50 | Horizontal bar chart | **Modify** — Apple-style progress bars with rounded ends, colored fills |
-| `src/components/charts/TrendChart.tsx` | 1-83 | Area/line trend chart | **Modify** — Apple-style chart with gradient fills, rounded curves |
-| `src/components/charts/ComparisonCard.tsx` | 1-46 | Week-over-week comparison | **Modify** — Apple-style comparison with colored deltas |
-| `src/components/ui/card.tsx` | 1-93 | Card container primitives | **Modify** — Apple-style cards (no border, elevated shadow, more padding) |
-| `src/components/ui/button.tsx` | 1-64 | Button with CVA variants | **Modify** — Apple-style buttons (pill shape, system blue) |
-| `src/components/ui/tabs.tsx` | 1-91 | Tabs / segmented control | **Major** — Convert to Apple segmented control appearance |
-| `src/components/ui/progress.tsx` | 1-31 | Progress bar | **Modify** — Rounded, colored progress |
-| `src/lib/utils/formatters.ts` | 1-75 | Trend icons, colors, formatting | **Modify** — Update trend colors to Apple palette, possibly SF Symbols |
+| `src/app/layout.tsx` | 1-35 | Root layout with fonts | **Change fonts** to Inter or system -apple-system stack |
+| `src/app/globals.css` | 1-126 | Tailwind theme, CSS variables, color tokens | **Major overhaul** — new Apple-style color palette, radius, shadows, animations |
+| `src/app/page.tsx` | 1-206 | Main dashboard page, header, date tabs, states | **Restyle** header, tabs, layout spacing, loading/empty states |
+| `src/components/dashboard/Overview.tsx` | 1-111 | Dashboard layout orchestrator | **Restyle** section layout, card grid, expand animation |
+| `src/components/dashboard/CategoryDetail.tsx` | 1-90 | Expandable category metrics view | **Restyle** metric grid, section headers |
+| `src/components/dashboard/RunningMetrics.tsx` | 1-14 | Running category wrapper | Thin wrapper — minimal changes |
+| `src/components/dashboard/GymMetrics.tsx` | 1-14 | Gym category wrapper | Thin wrapper — minimal changes |
+| `src/components/charts/FitnessScore.tsx` | 1-70 | Radial gauge visualization | **Redesign** to Apple-style ring gauge with gradient |
+| `src/components/charts/MetricCard.tsx` | 1-51 | Summary card with sparkline | **Redesign** to Apple Health metric card style |
+| `src/components/charts/TrendChart.tsx` | 1-84 | Line/Area time series chart | **Restyle** with Apple-like chart aesthetics |
+| `src/components/charts/ProgressChart.tsx` | 1-51 | Horizontal bar chart for scores | **Redesign** to Apple-style progress bars |
+| `src/components/charts/ComparisonCard.tsx` | 1-47 | Week-over-week comparison | **Restyle** with Apple comparison UI pattern |
+| `src/components/ui/card.tsx` | 1-93 | shadcn Card compound component | **Update** default styling (no border, elevated shadow, larger radius) |
+| `src/components/ui/button.tsx` | 1-65 | shadcn Button with CVA variants | May need Apple-style button updates (pill shape, system blue) |
+| `src/components/ui/tabs.tsx` | 1-92 | shadcn Tabs with Radix | **Major** — Convert to Apple segmented control appearance |
+| `src/components/ui/progress.tsx` | 1-32 | Radix progress bar | May need rounded, colored progress updates |
+| `src/lib/utils/formatters.ts` | 1-76 | Format values, colors, trends | **Update** score colors and trend colors to Apple palette |
 | `src/lib/utils.ts` | ~10 | cn() utility | No change needed |
-| `src/types/analytics.ts` | 1-47 | TypeScript interfaces | No change needed |
-| `src/config/metrics.ts` | 1-88 | Health type maps, score weights | No change needed |
-| `src/lib/mock/dashboard-preview.ts` | 1-781 | Mock data for preview mode | No change needed |
+| `src/types/analytics.ts` | all | TypeScript types | Reference only — no changes |
+| `src/config/metrics.ts` | all | Metric weights and mappings | Reference only — no changes |
+| `src/lib/mock/dashboard-preview.ts` | all | Mock data for preview mode | Reference only — no changes |
 
 ## Code Patterns and Conventions
 
-### Component Structure
+### Component Structure Pattern
+All components use functional components with TypeScript interfaces:
+
 ```typescript
-// Example from src/components/charts/MetricCard.tsx:1-50
-'use client';
-
-import { ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatMetricValue, getTrendIcon, getTrendColor } from '@/lib/utils/formatters';
-
+// Example from src/components/charts/MetricCard.tsx:7-13
 interface MetricCardProps {
   title: string;
   value: number | null;
@@ -74,24 +74,24 @@ interface MetricCardProps {
 }
 
 export function MetricCard({ title, value, unit, trend, sparklineData }: MetricCardProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* content */}
-      </CardContent>
-    </Card>
-  );
+```
+
+### Tailwind Class Merging Pattern
+Uses `cn()` utility from shadcn for conditional classes:
+
+```typescript
+// From src/lib/utils.ts
+import { clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
 ```
 
-### Styling Pattern — Tailwind Utility Classes
-All components use Tailwind utility classes directly in `className`. No CSS modules, no styled-components. The `cn()` utility from `@/lib/utils` merges classes with `clsx` + `tailwind-merge`.
-
+### Card Component Pattern (shadcn compound)
 ```typescript
-// From src/components/ui/card.tsx:5-15
+// From src/components/ui/card.tsx:5-16
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -116,16 +116,75 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         outline: "border bg-background shadow-xs hover:bg-accent ...",
-        // ...
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        // ...
       },
     },
   }
 )
+```
+
+### Chart Pattern (Recharts)
+All charts use Recharts with ResponsiveContainer:
+
+```typescript
+// From src/components/charts/FitnessScore.tsx:37-67
+<div className="relative" style={{ width: dimension, height: dimension }}>
+  <ResponsiveContainer width="100%" height="100%">
+    <RadialBarChart
+      cx="50%" cy="50%"
+      innerRadius="70%" outerRadius="100%"
+      startAngle={225} endAngle={-45}
+      data={data} barSize={size === 'lg' ? 14 : 10}
+    >
+      <RadialBar dataKey="value" cornerRadius={8} background={{ fill: '#e5e7eb' }} />
+    </RadialBarChart>
+  </ResponsiveContainer>
+  <div className="absolute inset-0 flex flex-col items-center justify-center">
+    <span className={`${fontSize} font-bold`} style={{ color }}>
+      {Math.round(score)}
+    </span>
+  </div>
+</div>
+```
+
+### Color/Score Pattern
+Three-tier color coding used across multiple files:
+
+```typescript
+// From src/lib/utils/formatters.ts:49-53
+export function getScoreColor(score: number): string {
+  if (score < 50) return 'text-red-500';
+  if (score < 70) return 'text-yellow-500';
+  return 'text-green-500';
+}
+```
+
+Also duplicated in FitnessScore.tsx:12-16 and ProgressChart.tsx:10-14 as `getScoreHex()`:
+```typescript
+function getScoreHex(score: number): string {
+  if (score < 50) return '#ef4444';
+  if (score < 70) return '#eab308';
+  return '#22c55e';
+}
+```
+
+### Trend System
+```typescript
+// From src/lib/utils/formatters.ts:61-75
+export function getTrendIcon(trend): string {
+  case 'improving': return '↑';
+  case 'stable': return '→';
+  case 'declining': return '↓';
+}
+
+export function getTrendColor(trend): string {
+  case 'improving': return 'text-green-500';
+  case 'stable': return 'text-gray-500';
+  case 'declining': return 'text-red-500';
+}
 ```
 
 ### Import/Export Pattern
@@ -149,7 +208,6 @@ const buttonVariants = cva(
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --border: oklch(0.922 0 0);
-  /* ... more variables */
 }
 ```
 
@@ -167,73 +225,11 @@ const geistMono = Geist_Mono({
 });
 ```
 
-### Chart Pattern (Recharts)
-```typescript
-// From src/components/charts/FitnessScore.tsx:37-67
-<div className="relative" style={{ width: dimension, height: dimension }}>
-  <ResponsiveContainer width="100%" height="100%">
-    <RadialBarChart
-      cx="50%" cy="50%"
-      innerRadius="70%" outerRadius="100%"
-      startAngle={225} endAngle={-45}
-      data={data} barSize={size === 'lg' ? 14 : 10}
-    >
-      <RadialBar dataKey="value" cornerRadius={8} background={{ fill: '#e5e7eb' }} />
-    </RadialBarChart>
-  </ResponsiveContainer>
-  <div className="absolute inset-0 flex flex-col items-center justify-center">
-    <span className={`${fontSize} font-bold`} style={{ color }}>
-      {Math.round(score)}
-    </span>
-  </div>
-</div>
-```
-
-### Score Color Pattern
-```typescript
-// From src/lib/utils/formatters.ts:49-53
-export function getScoreColor(score: number): string {
-  if (score < 50) return 'text-red-500';
-  if (score < 70) return 'text-yellow-500';
-  return 'text-green-500';
-}
-```
-
-### Trend System
-```typescript
-// From src/lib/utils/formatters.ts:61-75
-export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): string {
-  switch (trend) {
-    case 'improving': return '↑';
-    case 'stable': return '→';
-    case 'declining': return '↓';
-  }
-}
-
-export function getTrendColor(trend: 'improving' | 'stable' | 'declining'): string {
-  switch (trend) {
-    case 'improving': return 'text-green-500';
-    case 'stable': return 'text-gray-500';
-    case 'declining': return 'text-red-500';
-  }
-}
-```
-
 ## Integration Points
 
-### Key Interfaces (no changes needed — UI-only redesign)
+### Key Interfaces (from src/types/analytics.ts — no changes needed)
 
 ```typescript
-// From src/types/analytics.ts:1-47
-export interface FitnessScore {
-  date: string;
-  running_score: number | null;
-  gym_score: number | null;
-  overall_score: number | null;
-  trend_direction: 'improving' | 'stable' | 'declining';
-  computed_at: string;
-}
-
 export interface MetricSummary {
   label: string;
   value: number | null;
@@ -291,18 +287,36 @@ export type DashboardApiResponse = DashboardData & {
 5. Overview renders: FitnessScore, MetricCards (clickable), expanded CategoryDetail, ProgressChart, TrendChart
 6. CategoryDetail renders: ComparisonCards (week comparison) + metric cards with individual TrendCharts
 
+### Component Dependency Tree
+```
+page.tsx
+├── Overview
+│   ├── FitnessScore (RadialBarChart)
+│   ├── MetricCard × 2 (Running, Gym category scores)
+│   ├── RunningMetrics → CategoryDetail
+│   │   ├── ComparisonCard × N
+│   │   ├── Card + TrendChart × N
+│   ├── GymMetrics → CategoryDetail
+│   │   ├── ComparisonCard × N
+│   │   ├── Card + TrendChart × N
+│   ├── ProgressChart (BarChart)
+│   └── TrendChart (AreaChart / LineChart)
+```
+
 ## Testing Infrastructure
 
 ### Test Runner & Commands
 - Runner: Vitest 4.0.18
-- Run all: `npm test` (or `vitest run`)
-- Run specific: `vitest run <pattern>`
+- Run all: `npm test` (vitest run)
+- Run specific: `npx vitest run __tests__/<pattern>`
+- Watch mode: `npm run test:watch`
+- Typecheck: `npm run typecheck`
+- Lint: `npm run lint`
 
 ### Existing Test Files
-- `__tests__/` directory (minimal tests for utility functions)
-
-### Test Patterns
-The project has minimal test coverage. UI changes are validated visually via the dev server preview mode (mock data).
+- `__tests__/` directory with utility/integration tests
+- UI components do NOT currently have tests
+- Changes are validated visually via dev server preview mode (mock data)
 
 ## Implementation Considerations
 
@@ -318,39 +332,45 @@ This is a **pure visual/UI redesign** — no data model, API, or business logic 
 ### Apple Design Language — Key Elements to Implement
 
 #### Color System
-- **Background**: Pure white `#FFFFFF` or very light gray `#F2F2F7` (Apple's system grouped background)
-- **Cards**: White with no borders, soft shadows
+- **Background**: `#F2F2F7` (Apple system grouped background) or pure white
+- **Cards**: White `#FFFFFF` with no borders, soft elevated shadows
 - **Primary accent**: Apple system blue `#007AFF`
 - **Health category colors**:
-  - Activity/Running: Green `#30D158` / Red `#FF3B30` (Activity rings)
-  - Heart/Cardio: Red `#FF2D55`
-  - Fitness Score: Multi-color gradient ring
-- **Text**: Black `#000000` / Gray `#8E8E93` (Apple system gray)
-- **Improving**: Green `#34C759`
-- **Declining**: Red `#FF3B30`
-- **Stable**: Gray `#8E8E93`
+  - Running: Green `#30D158`
+  - Gym/Strength: Orange `#FF9F0A`
+  - Heart/Cardio: Red/Pink `#FF2D55`
+  - Overall Score: Multi-color gradient or category-weighted
+- **Text**: Black `#000000` / Secondary gray `#8E8E93`
+- **Score tiers**: Red `#FF3B30` (<50), Orange `#FF9F0A` (50-70), Green `#30D158` (70+)
+- **Trends**: Green `#34C759` (improving), Red `#FF3B30` (declining), Gray `#8E8E93` (stable)
 
 #### Typography
-- **Font**: `-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui` (native Apple font stack) or Inter as a close web-safe alternative
-- **Large titles**: 34px bold (Apple Large Title)
+- **Font**: `-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui` or Inter as cross-platform fallback
+- **Large titles**: 34px bold
 - **Headlines**: 22px semibold
 - **Body**: 17px regular
 - **Caption**: 13px regular, gray
 - **Tabular numbers** for metrics (`font-variant-numeric: tabular-nums`)
 
 #### Card & Surface Treatment
-- No borders on cards (remove `border` from Card component)
-- Elevated shadow: `0 2px 10px rgba(0, 0, 0, 0.08)` (subtle)
-- Larger border-radius: `16px` (Apple standard)
-- More internal padding: `20px-24px`
-- Card background: white
+- No visible borders on cards (remove `border` from Card component)
+- Elevated shadow: `0 2px 10px rgba(0, 0, 0, 0.08)`
+- Border-radius: `16px` (Apple standard)
+- Internal padding: `20px-24px`
+
+#### Gauge/Ring Design
+- Thick stroke width (12-16px)
+- Rounded caps (linecap: round)
+- Background track: `#E5E5EA`
+- Score inside: large bold number
+- Consider gradient fill along arc
 
 #### Interactions & Animations
-- **Transitions**: `cubic-bezier(0.25, 0.46, 0.45, 0.94)` (Apple ease-out)
-- **Hover states**: Slight scale-up (`transform: scale(1.02)`) with shadow increase
-- **Category expand**: Smooth height animation
-- **Tab/segment switching**: Sliding indicator animation
-- **Score ring**: Animated fill on mount
+- Transitions: `cubic-bezier(0.25, 0.46, 0.45, 0.94)` (Apple ease-out), 200-300ms
+- Card hover: subtle scale-up (`scale(1.02)`) with shadow increase
+- Category expand: smooth height animation
+- Segmented control: sliding indicator animation
+- Score ring: animated fill on mount
 
 #### Segmented Control (replacing Tabs)
 - Rounded pill container with gray background
@@ -358,21 +378,21 @@ This is a **pure visual/UI redesign** — no data model, API, or business logic 
 - Smooth sliding transition between segments
 
 #### Layout
-- Max-width container: `860px` (narrower, more focused)
-- Generous vertical spacing between sections: `32px-40px`
+- Max-width container: ~860px (narrower, focused)
+- Vertical spacing between sections: 32-40px
 - Full-width cards within container
 
 ### Risks
-- **Font licensing**: SF Pro is Apple-proprietary; use `-apple-system` font stack for Apple devices, fallback to Inter/system-ui elsewhere
-- **Recharts customization limits**: Some Apple-style chart aesthetics (gradient fills, rounded area charts) may require custom SVG or wrapper adjustments
-- **Dark mode**: Apple Health is primarily light-mode; dark mode styling needs separate consideration
-- **Animation performance**: CSS transitions are performant; avoid JS-driven animations for layout changes
-- **Browser compatibility**: OKLch colors are modern; fallbacks may be needed for older browsers (but Next.js 16 targets modern browsers)
+1. **Font licensing**: SF Pro is Apple-proprietary; use `-apple-system` stack for Apple devices, fallback to Inter/system-ui elsewhere
+2. **Recharts customization limits**: Some Apple-style aesthetics (gradient fills, rounded area charts) may need custom SVG
+3. **Dark mode**: Apple Health is primarily light mode; dark mode styling needs separate consideration
+4. **Animation performance**: CSS transitions are performant; avoid JS-driven animations for layout changes
+5. **Browser compatibility**: OKLCH colors are modern but Next.js 16 targets modern browsers
 
 ### Scope Estimate
 - Files to modify: ~15
 - Files to create: 0 (pure modifications)
-- Estimated lines of change: ~400-600 (mostly className attribute changes and CSS variable updates)
+- Estimated lines of change: ~400-600
 
 ## Specification Assessment
 
@@ -391,7 +411,7 @@ This feature **needs a UX specification** because:
 2. **Font preference**: Use native `-apple-system` stack (free, best on Apple devices) or load Inter via Google Fonts (consistent cross-platform)?
 3. **Activity rings**: Should the FitnessScore component be redesigned as Apple-style Activity rings (concentric circles) or keep the current radial gauge with refined styling?
 4. **Scope of import page**: Does the `/import` page also need the Apple-style treatment, or only the dashboard?
-5. **Animation intensity**: Minimal (just transitions) or rich (animated rings, staggered card entries, parallax-like scroll effects)?
+5. **Animation intensity**: Minimal (just transitions) or rich (animated rings, staggered card entries)?
 
 ## Next Steps
 
@@ -399,7 +419,7 @@ Ready for specification phase. The specification should define:
 - Exact color tokens for the Apple-style theme
 - Typography scale and font decisions
 - Card component styling specification
-- Chart visual treatment details
+- Chart/gauge visual treatment details
 - Animation and transition specifications
 - Segmented control behavior
 - Mobile responsive considerations
