@@ -4,7 +4,7 @@
 **Date**: 2026-02-16
 **Research**: dawn-docs/active/research/2026-02-16-TEST-AGI-4-ralph-healthkit-view-apple-style.md
 **Specification**: dawn-docs/active/specifications/2026-02-16-TEST-AGI-4-ralph-healthkit-view-apple-style.md
-**Status**: Ready for Implementation
+**Status**: Implementation Complete
 
 ## Overview
 
@@ -14,17 +14,17 @@ The work is organized into 4 phases, ordered by dependency. Each phase builds on
 
 ## Success Criteria
 
-- [ ] Dashboard visually resembles Apple Health / Apple Fitness+ design language
-- [ ] Inter font loaded and applied with correct typographic hierarchy (weights, sizes, letter-spacing per spec)
-- [ ] Custom SVG activity ring replaces Recharts RadialBarChart with animated arc draw
-- [ ] Apple-style pill segmented control replaces current Tabs for date range selection
-- [ ] Cards use 16px radius, no borders (light mode), subtle dual shadows, hover lift
-- [ ] Smooth animations: skeleton loading → fade-in, ring draw, category expand/collapse, date range transitions
-- [ ] Light and dark mode both functional with specified color tokens
-- [ ] All existing functionality preserved (data fetch, preview mode, import, error/empty states)
-- [ ] App builds without errors: `npm run build`
-- [ ] TypeScript passes: `npm run typecheck`
-- [ ] Live preview works: `npm run dev` shows running app with hot reload
+- [x] Dashboard visually resembles Apple Health / Apple Fitness+ design language
+- [x] Inter font loaded and applied with correct typographic hierarchy (weights, sizes, letter-spacing per spec)
+- [x] Custom SVG activity ring replaces Recharts RadialBarChart with animated arc draw
+- [x] Apple-style pill segmented control replaces current Tabs for date range selection
+- [x] Cards use 16px radius, no borders (light mode), subtle dual shadows, hover lift
+- [x] Smooth animations: skeleton loading → fade-in, ring draw, category expand/collapse, date range transitions
+- [x] Light and dark mode both functional with specified color tokens
+- [x] All existing functionality preserved (data fetch, preview mode, import, error/empty states)
+- [x] App builds without errors: `npm run build`
+- [x] TypeScript passes: `npm run typecheck`
+- [x] Live preview works: `npm run dev` shows running app with hot reload
 
 ## Phases
 
