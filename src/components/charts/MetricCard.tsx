@@ -16,7 +16,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="font-serif text-base italic">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
@@ -35,7 +35,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke="#7b8faf"
                     strokeWidth={1.5}
                     dot={false}
                   />

@@ -36,7 +36,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle>Overall Fitness Score</CardTitle>
+            <CardTitle className="font-serif text-xl italic">Overall Fitness Score</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
             <FitnessScore score={data.overall_score} trend={data.overall_trend} />
@@ -84,7 +84,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle>Category Breakdown</CardTitle>
+            <CardTitle className="font-serif text-xl italic">Category Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ProgressChart categories={data.categories} />
@@ -97,10 +97,10 @@ export function Overview({ data, dateRange }: OverviewProps) {
         <section>
           <Card>
             <CardHeader>
-              <CardTitle>Score Trend</CardTitle>
+              <CardTitle className="font-serif text-xl italic">Score Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+              <TrendChart data={data.score_history} dateRange={dateRange} color="#5b7fb5" />
             </CardContent>
           </Card>
         </section>
