@@ -7,8 +7,9 @@ interface RunningMetricsProps {
   metrics: MetricSummary[];
   dateRange: DateRange;
   weekComparison?: WeekComparisonMetric[];
+  color?: string;
 }
 
-export function RunningMetrics({ metrics, dateRange, weekComparison }: RunningMetricsProps) {
-  return <CategoryDetail title="Running" metrics={metrics} dateRange={dateRange} weekComparison={weekComparison} />;
+export function RunningMetrics({ metrics, dateRange, weekComparison, color }: RunningMetricsProps) {
+  return <CategoryDetail title="Running" metrics={metrics} dateRange={dateRange} weekComparison={weekComparison} color={color} />;
 }
