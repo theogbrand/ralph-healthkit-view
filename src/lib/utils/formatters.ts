@@ -58,6 +58,12 @@ export function getScoreBgColor(score: number): string {
   return 'bg-green-500';
 }
 
+export function getScoreRingColor(score: number): string {
+  if (score < 50) return 'var(--ring-move)';
+  if (score < 70) return 'var(--chart-amber)';
+  return 'var(--ring-exercise)';
+}
+
 export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): string {
   switch (trend) {
     case 'improving': return '↑';
