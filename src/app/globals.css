@@ -47,72 +47,75 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --radius: 0.75rem;
+  /* Monet-inspired palette: Water Lilies, Giverny Gardens, Impressionist haze */
+  --background: oklch(0.97 0.008 85);           /* warm ivory canvas */
+  --foreground: oklch(0.25 0.02 270);            /* deep blue-violet ink */
+  --card: oklch(0.985 0.006 80);                 /* soft cream card */
+  --card-foreground: oklch(0.25 0.02 270);       /* deep blue-violet */
+  --popover: oklch(0.985 0.006 80);
+  --popover-foreground: oklch(0.25 0.02 270);
+  --primary: oklch(0.52 0.12 270);               /* Water Lily blue-violet */
+  --primary-foreground: oklch(0.98 0.005 85);    /* warm white */
+  --secondary: oklch(0.92 0.03 140);             /* soft Giverny green */
+  --secondary-foreground: oklch(0.30 0.04 150);  /* deep garden green */
+  --muted: oklch(0.94 0.015 280);                /* pale lavender mist */
+  --muted-foreground: oklch(0.50 0.03 270);      /* hazy blue-violet */
+  --accent: oklch(0.90 0.04 350);                /* soft rose / water lily pink */
+  --accent-foreground: oklch(0.30 0.06 350);     /* deep rose */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.88 0.025 270);               /* soft lavender border */
+  --input: oklch(0.90 0.02 270);                 /* light lavender input */
+  --ring: oklch(0.60 0.10 270);                  /* blue-violet ring */
+  /* Chart palette: Monet's garden & water */
+  --chart-1: oklch(0.58 0.14 270);               /* blue-violet (water) */
+  --chart-2: oklch(0.62 0.12 155);               /* sage green (lily pads) */
+  --chart-3: oklch(0.68 0.13 350);               /* rose pink (water lilies) */
+  --chart-4: oklch(0.72 0.12 85);                /* golden yellow (sunlight) */
+  --chart-5: oklch(0.55 0.10 300);               /* lavender (sky reflections) */
+  --sidebar: oklch(0.96 0.01 85);
+  --sidebar-foreground: oklch(0.25 0.02 270);
+  --sidebar-primary: oklch(0.52 0.12 270);
+  --sidebar-primary-foreground: oklch(0.98 0.005 85);
+  --sidebar-accent: oklch(0.92 0.03 140);
+  --sidebar-accent-foreground: oklch(0.30 0.04 150);
+  --sidebar-border: oklch(0.88 0.025 270);
+  --sidebar-ring: oklch(0.60 0.10 270);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Monet at dusk — deep water reflections */
+  --background: oklch(0.18 0.02 270);            /* deep twilight blue */
+  --foreground: oklch(0.93 0.01 85);             /* warm cream text */
+  --card: oklch(0.22 0.025 270);                 /* deep water card */
+  --card-foreground: oklch(0.93 0.01 85);
+  --popover: oklch(0.22 0.025 270);
+  --popover-foreground: oklch(0.93 0.01 85);
+  --primary: oklch(0.72 0.10 270);               /* luminous blue-violet */
+  --primary-foreground: oklch(0.18 0.02 270);
+  --secondary: oklch(0.30 0.03 150);             /* deep garden green */
+  --secondary-foreground: oklch(0.90 0.02 140);
+  --muted: oklch(0.26 0.02 280);                 /* dark lavender */
+  --muted-foreground: oklch(0.65 0.04 270);      /* misty blue */
+  --accent: oklch(0.30 0.04 350);                /* deep rose */
+  --accent-foreground: oklch(0.90 0.04 350);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(1 0.01 270 / 12%);             /* lavender border */
+  --input: oklch(1 0.01 270 / 15%);
+  --ring: oklch(0.60 0.10 270);
+  --chart-1: oklch(0.65 0.14 270);               /* bright water blue */
+  --chart-2: oklch(0.68 0.12 155);               /* garden green */
+  --chart-3: oklch(0.72 0.13 350);               /* rose pink */
+  --chart-4: oklch(0.75 0.12 85);                /* golden light */
+  --chart-5: oklch(0.62 0.10 300);               /* lavender */
+  --sidebar: oklch(0.20 0.025 270);
+  --sidebar-foreground: oklch(0.93 0.01 85);
+  --sidebar-primary: oklch(0.65 0.14 270);
+  --sidebar-primary-foreground: oklch(0.93 0.01 85);
+  --sidebar-accent: oklch(0.30 0.03 150);
+  --sidebar-accent-foreground: oklch(0.90 0.02 140);
+  --sidebar-border: oklch(1 0.01 270 / 12%);
+  --sidebar-ring: oklch(0.60 0.10 270);
 }
 
 @layer base {
@@ -122,4 +125,38 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Monet impressionist touches */
+[data-slot="card"] {
+  box-shadow:
+    0 1px 3px oklch(0.50 0.05 270 / 8%),
+    0 4px 12px oklch(0.50 0.05 270 / 5%);
+  border-color: oklch(0.85 0.03 270 / 50%);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+[data-slot="card"]:hover {
+  box-shadow:
+    0 2px 6px oklch(0.50 0.05 270 / 12%),
+    0 8px 20px oklch(0.50 0.05 270 / 8%);
+}
+
+/* Soft header border — impressionist watercolor edge */
+header {
+  border-bottom-color: oklch(0.82 0.04 270 / 40%) !important;
+  background: linear-gradient(
+    180deg,
+    oklch(0.98 0.01 85 / 90%),
+    oklch(0.96 0.015 280 / 60%)
+  );
+  backdrop-filter: blur(8px);
+}
+
+.dark header {
+  background: linear-gradient(
+    180deg,
+    oklch(0.20 0.025 270 / 90%),
+    oklch(0.18 0.03 280 / 60%)
+  );
 }

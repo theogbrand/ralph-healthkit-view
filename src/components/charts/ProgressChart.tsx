@@ -8,9 +8,9 @@ interface ProgressChartProps {
 }
 
 function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+  if (score < 50) return '#c47a8a';   /* muted rose */
+  if (score < 70) return '#c9a855';   /* warm ochre */
+  return '#7bad7e';                    /* sage green */
 }
 
 const LABELS: Record<string, string> = {

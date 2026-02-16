@@ -72,7 +72,7 @@ export function CategoryDetail({ title, metrics, dateRange, weekComparison }: Ca
                     value,
                   }))}
                   dateRange={dateRange}
-                  color="#6366f1"
+                  color="#7b8dba"  /* soft blue — Monet's water lilies */
                   showArea
                 />
               ) : (

@@ -35,7 +35,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke="#8b7db8"  /* soft lavender — Monet's twilight */
                     strokeWidth={1.5}
                     dot={false}
                   />

@@ -88,9 +88,9 @@ export default function Home() {
       <header className="border-b">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Ralph</h1>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#6b6daa' }}>Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 rounded-full border border-violet-300 bg-violet-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-700">
                 <span aria-hidden>●</span>
                 Preview
               </span>

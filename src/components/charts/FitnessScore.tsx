@@ -10,9 +10,9 @@ interface FitnessScoreProps {
 }
 
 function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+  if (score < 50) return '#c47a8a';   /* muted rose — Monet's faded poppies */
+  if (score < 70) return '#c9a855';   /* warm ochre — Monet's haystacks */
+  return '#7bad7e';                    /* sage green — Giverny gardens */
 }
 
 export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
@@ -51,7 +51,7 @@ export function FitnessScore({ score, trend, size = 'lg' }: FitnessScoreProps) {
             <RadialBar
               dataKey="value"
               cornerRadius={8}
-              background={{ fill: '#e5e7eb' }}
+              background={{ fill: '#ddd5e9' }}  /* pale lavender track */
             />
           </RadialBarChart>
         </ResponsiveContainer>

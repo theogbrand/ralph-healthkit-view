@@ -20,7 +20,7 @@ export default function ImportPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#6b6daa' }}>
             <Link href="/">Ralph</Link>
           </h1>
           <nav className="flex gap-4">
