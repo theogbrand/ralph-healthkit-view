@@ -10,21 +10,24 @@ interface MetricCardProps {
   unit: string;
   trend: 'improving' | 'stable' | 'declining';
   sparklineData?: number[];
+  color?: string;
 }
 
-export function MetricCard({ title, value, unit, trend, sparklineData }: MetricCardProps) {
+export function MetricCard({ title, value, unit, trend, sparklineData, color }: MetricCardProps) {
+  const sparkColor = color ? `${color}80` : '#8E8E93';
+
   return (
-    <Card>
+    <Card className="cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-[17px] font-semibold tracking-[-0.2px]">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-[28px] font-bold tracking-[-0.3px] tabular-nums">
               {value !== null ? formatMetricValue(value, unit) : '--'}
             </p>
-            <p className={`mt-1 text-sm font-medium ${getTrendColor(trend)}`}>
+            <p className={`mt-1 text-[13px] font-medium ${getTrendColor(trend)}`}>
               {getTrendIcon(trend)} {trend}
             </p>
           </div>
@@ -35,7 +38,7 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
+                    stroke={sparkColor}
                     strokeWidth={1.5}
                     dot={false}
                   />

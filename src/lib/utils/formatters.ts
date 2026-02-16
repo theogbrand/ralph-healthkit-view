@@ -47,15 +47,15 @@ export function formatPace(minutesPerKm: number): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score < 50) return 'text-red-500';
-  if (score < 70) return 'text-yellow-500';
-  return 'text-green-500';
+  if (score < 50) return 'text-[#FF3B30]';
+  if (score < 70) return 'text-[#FF9F0A]';
+  return 'text-[#30D158]';
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score < 50) return 'bg-red-500';
-  if (score < 70) return 'bg-yellow-500';
-  return 'bg-green-500';
+  if (score < 50) return 'bg-red-50';
+  if (score < 70) return 'bg-orange-50';
+  return 'bg-green-50';
 }
 
 export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): string {
@@ -68,8 +68,22 @@ export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): strin
 
 export function getTrendColor(trend: 'improving' | 'stable' | 'declining'): string {
   switch (trend) {
-    case 'improving': return 'text-green-500';
-    case 'stable': return 'text-gray-500';
-    case 'declining': return 'text-red-500';
+    case 'improving': return 'text-[#34C759]';
+    case 'stable': return 'text-[#8E8E93]';
+    case 'declining': return 'text-[#FF3B30]';
+  }
+}
+
+export function getScoreHex(score: number): string {
+  if (score < 50) return '#FF3B30';
+  if (score < 70) return '#FF9F0A';
+  return '#30D158';
+}
+
+export function getTrendHex(trend: string): string {
+  switch (trend) {
+    case 'improving': return '#34C759';
+    case 'declining': return '#FF3B30';
+    default: return '#8E8E93';
   }
 }

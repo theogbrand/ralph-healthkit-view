@@ -15,28 +15,34 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
     ? higherIsBetter ? deltaPercent > 0 : deltaPercent < 0
     : null;
 
-  const deltaColor = isImproving === null
-    ? 'text-muted-foreground'
-    : isImproving ? 'text-green-500' : 'text-red-500';
-
   const arrow = deltaPercent != null
     ? (deltaPercent > 0 ? '↑' : deltaPercent < 0 ? '↓' : '→')
     : '';
 
+  let badgeBg = 'bg-[#8E8E93]/[0.12]';
+  let badgeText = 'text-[#8E8E93]';
+  if (isImproving === true) {
+    badgeBg = 'bg-[#34C759]/[0.12]';
+    badgeText = 'text-[#34C759]';
+  } else if (isImproving === false) {
+    badgeBg = 'bg-[#FF3B30]/[0.12]';
+    badgeText = 'text-[#FF3B30]';
+  }
+
   return (
     <Card>
       <CardHeader className="pb-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
+        <CardTitle className="text-[13px] text-[#8E8E93]">{label}</CardTitle>
+        <p className="text-[22px] font-semibold tabular-nums">
           {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
         </p>
       </CardHeader>
       <CardContent className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-[13px] text-[#8E8E93]">
           Last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
         </span>
         {deltaPercent != null && (
-          <span className={`text-sm font-semibold ${deltaColor}`}>
+          <span className={`rounded-xl px-2 py-0.5 text-[12px] font-medium ${badgeBg} ${badgeText}`}>
             {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
           </span>
         )}

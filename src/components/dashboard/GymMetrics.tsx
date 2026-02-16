@@ -7,8 +7,9 @@ interface GymMetricsProps {
   metrics: MetricSummary[];
   dateRange: DateRange;
   weekComparison?: WeekComparisonMetric[];
+  color?: string;
 }
 
-export function GymMetrics({ metrics, dateRange, weekComparison }: GymMetricsProps) {
-  return <CategoryDetail title="Gym" metrics={metrics} dateRange={dateRange} weekComparison={weekComparison} />;
+export function GymMetrics({ metrics, dateRange, weekComparison, color }: GymMetricsProps) {
+  return <CategoryDetail title="Gym" metrics={metrics} dateRange={dateRange} weekComparison={weekComparison} color={color} />;
 }
