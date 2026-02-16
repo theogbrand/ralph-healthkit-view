@@ -2,15 +2,10 @@
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import type { DashboardData } from '@/types/analytics';
+import { getScoreHex } from '@/lib/utils/formatters';
 
 interface ProgressChartProps {
   categories: DashboardData['categories'];
-}
-
-function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
 }
 
 const LABELS: Record<string, string> = {
@@ -27,8 +22,8 @@ export function ProgressChart({ categories }: ProgressChartProps) {
   const hasData = data.some((d) => d.score > 0);
   if (!hasData) {
     return (
-      <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-        No category data available
+      <div className="flex h-[200px] items-center justify-center text-[13px] text-[#8E8E93]">
+        Not enough data yet
       </div>
     );
   }
@@ -36,10 +31,33 @@ export function ProgressChart({ categories }: ProgressChartProps) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 13 }} width={70} />
-        <Tooltip formatter={(value) => [`${Math.round(Number(value))}/100`, 'Score']} />
-        <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={24}>
+        <XAxis
+          type="number"
+          domain={[0, 100]}
+          tick={{ fontSize: 13, fill: '#8E8E93' }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          tick={{ fontSize: 13, fill: '#8E8E93' }}
+          width={70}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip
+          contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: '8px 12px' }}
+          labelStyle={{ fontSize: 13, color: '#8E8E93', marginBottom: 4 }}
+          itemStyle={{ fontSize: 13 }}
+          formatter={(value) => [`${Math.round(Number(value))}/100`, 'Score']}
+        />
+        <Bar
+          dataKey="score"
+          radius={[8, 8, 8, 8]}
+          barSize={28}
+          background={{ fill: 'rgba(0,0,0,0.04)', radius: 8 }}
+        >
           {data.map((entry) => (
             <Cell key={entry.name} fill={getScoreHex(entry.score)} />
           ))}
