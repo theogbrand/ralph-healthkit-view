@@ -4,7 +4,7 @@
 **Date**: 2026-02-16
 **Research**: dawn-docs/active/research/2026-02-16-TEST-AGI-88-ralph-healthkit-view-apple-style.md
 **Specification**: dawn-docs/active/specifications/2026-02-16-TEST-AGI-88-ralph-healthkit-view-apple-style.md
-**Status**: Ready for Implementation
+**Status**: Implementation Complete
 
 ## Overview
 
@@ -12,22 +12,22 @@ Transform the Ralph HealthKit dashboard from its current generic shadcn/ui + Gei
 
 ## Success Criteria
 
-- [ ] Typography uses Inter / system-ui font stack (replacing Geist)
-- [ ] Color palette matches Apple Health design language (Activity ring colors, system labels, semantic colors)
-- [ ] Cards use 16px radius, shadow-based elevation (no borders), hover lift effect
-- [ ] Segmented control replaces tab component for date range selection
-- [ ] FitnessScore displays Apple-style Activity Ring with animated draw-in
-- [ ] Metric cards follow Apple typography hierarchy (caption title, semibold value, trend pill badge)
-- [ ] Frosted glass sticky header with "Ralph" wordmark
-- [ ] Loading state uses shimmer skeleton placeholders
-- [ ] Error and empty states match specification copy and styling
-- [ ] Smooth CSS transitions throughout (fade-in, card hover, category expand/collapse)
-- [ ] Dark mode variables updated for Apple dark palette
-- [ ] Import page styled consistently
-- [ ] All existing tests pass: `npm run test`
-- [ ] Type check passes: `npm run typecheck`
-- [ ] Build succeeds: `npm run build`
-- [ ] Dev server runs without errors: `npm run dev`
+- [x] Typography uses Inter / system-ui font stack (replacing Geist)
+- [x] Color palette matches Apple Health design language (Activity ring colors, system labels, semantic colors)
+- [x] Cards use 16px radius, shadow-based elevation (no borders), hover lift effect
+- [x] Segmented control replaces tab component for date range selection
+- [x] FitnessScore displays Apple-style Activity Ring with animated draw-in
+- [x] Metric cards follow Apple typography hierarchy (caption title, semibold value, trend pill badge)
+- [x] Frosted glass sticky header with "Ralph" wordmark
+- [x] Loading state uses shimmer skeleton placeholders
+- [x] Error and empty states match specification copy and styling
+- [x] Smooth CSS transitions throughout (fade-in, card hover, category expand/collapse)
+- [x] Dark mode variables updated for Apple dark palette
+- [x] Import page styled consistently
+- [x] All existing tests pass: `npm run test`
+- [x] Type check passes: `npx tsc --noEmit` (no typecheck script available)
+- [x] Build succeeds: `npm run build`
+- [x] Dev server runs without errors: `npm run dev`
 
 ## Phases
 
