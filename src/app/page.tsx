@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import type { DashboardData, DateRange } from '@/types/analytics';
+import type { DateRange } from '@/types/analytics';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Overview } from '@/components/dashboard';
 import { timeAgo } from '@/lib/utils/date-helpers';
+import {
+  getMockDashboardData,
+  hasRealDashboardData,
+  type DashboardApiResponse,
+} from '@/lib/mock/dashboard-preview';
 
-type ApiResponse = DashboardData & {
-  score_history: Array<{ date: string; value: number }>;
-  total_records: number;
-};
+type ApiResponse = DashboardApiResponse;
 
 const RANGES: { value: DateRange; label: string }[] = [
   { value: '30d', label: '30 Days' },
@@ -23,7 +25,8 @@ const RANGES: { value: DateRange; label: string }[] = [
 
 export default function Home() {
   const [range, setRange] = useState<DateRange>('90d');
-  const [data, setData] = useState<ApiResponse | null>(null);
+  const [apiData, setApiData] = useState<ApiResponse | null>(null);
+  const [isManualPreviewMode, setIsManualPreviewMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +37,7 @@ export default function Home() {
       const res = await fetch(`/api/analytics?range=${r}`);
       if (!res.ok) throw new Error('Failed to fetch analytics');
       const json: ApiResponse = await res.json();
-      setData(json);
+      setApiData(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
@@ -46,15 +49,50 @@ export default function Home() {
     fetchData(range);
   }, [range, fetchData]);
 
+  const hasRealData = useMemo(() => (apiData ? hasRealDashboardData(apiData) : false), [apiData]);
+
+  const isPreviewMode = useMemo(
+    () => Boolean(apiData) && (!hasRealData || isManualPreviewMode),
+    [apiData, hasRealData, isManualPreviewMode],
+  );
+
+  const data = useMemo(() => {
+    if (!apiData) return null;
+    return isPreviewMode ? getMockDashboardData(range) : apiData;
+  }, [apiData, isPreviewMode, range]);
+
   const hasData = data && (data.overall_score !== null || data.total_records > 0);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-bold">Ralph</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Ralph</h1>
+            {isPreviewMode && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                <span aria-hidden>●</span>
+                Preview
+              </span>
+            )}
+          </div>
           <nav className="flex items-center gap-4">
-            {data?.last_sync && (
+            {hasRealData && !loading && !error && (
+              <Button
+                size="sm"
+                variant={isManualPreviewMode ? 'secondary' : 'outline'}
+                aria-pressed={isManualPreviewMode}
+                onClick={() => setIsManualPreviewMode((prev) => !prev)}
+              >
+                {isManualPreviewMode ? 'Exit Preview' : 'Preview Mode'}
+              </Button>
+            )}
+            {isPreviewMode && (
+              <span className="text-sm text-muted-foreground">
+                Preview dataset
+              </span>
+            )}
+            {!isPreviewMode && data?.last_sync && (
               <span className="text-sm text-muted-foreground">
                 Last sync: {timeAgo(data.last_sync)}
               </span>
@@ -129,7 +167,9 @@ export default function Home() {
               <Card>
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="text-sm text-muted-foreground">
-                    Last sync: {data.last_sync ? timeAgo(data.last_sync) : 'Never'}
+                    {isPreviewMode
+                      ? 'Preview dataset'
+                      : `Last sync: ${data.last_sync ? timeAgo(data.last_sync) : 'Never'}`}
                   </div>
                   <Link href="/import">
                     <Button size="sm">Import Data</Button>
