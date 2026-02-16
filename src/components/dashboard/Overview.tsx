@@ -51,7 +51,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
           return (
             <button
               key={key}
-              className="text-left"
+              className="text-left w-full transition-all duration-200 hover:-translate-y-0.5"
               onClick={() => toggle(key)}
             >
               <MetricCard
@@ -100,7 +100,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
               <CardTitle>Score Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+              <TrendChart data={data.score_history} dateRange={dateRange} color="#8b5cf6" />
             </CardContent>
           </Card>
         </section>
