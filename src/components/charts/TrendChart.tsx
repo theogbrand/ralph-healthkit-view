@@ -28,44 +28,62 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
+  color = '#00D4FF',
   showArea = true,
 }: TrendChartProps) {
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+      <div className="flex h-[300px] items-center justify-center text-[var(--text-secondary)]">
         No trend data available
       </div>
     );
   }
 
-  // Show fewer ticks for shorter ranges
   const tickInterval = dateRange === '30d' ? 6 : dateRange === '60d' ? 13 : dateRange === '90d' ? 14 : 30;
+  const gradientId = `gradient-${color.replace('#', '')}`;
 
   const Chart = showArea ? AreaChart : LineChart;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
       <Chart data={data}>
-        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.2} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          strokeDasharray="4 4"
+          stroke="var(--separator)"
+          strokeOpacity={0.5}
+        />
         <XAxis
           dataKey="date"
           tickFormatter={formatDateTick}
           interval={tickInterval}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
         />
-        <YAxis tick={{ fontSize: 12 }} width={40} />
+        <YAxis
+          tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+          width={40}
+        />
         <Tooltip
           labelFormatter={(label) => formatDateTick(String(label))}
           formatter={(value) => [Number(value).toFixed(1), 'Value']}
+          contentStyle={{
+            backgroundColor: 'var(--card)',
+            border: 'none',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
         />
         {showArea ? (
           <Area
             type="monotone"
             dataKey="value"
             stroke={color}
-            fill={color}
-            fillOpacity={0.15}
+            fill={`url(#${gradientId})`}
             strokeWidth={2}
           />
         ) : (
