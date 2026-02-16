@@ -100,7 +100,7 @@ export function Overview({ data, dateRange }: OverviewProps) {
               <CardTitle>Score Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+              <TrendChart data={data.score_history} dateRange={dateRange} color="#5a82b4" />
             </CardContent>
           </Card>
         </section>

@@ -7,10 +7,11 @@ interface ProgressChartProps {
   categories: DashboardData['categories'];
 }
 
+/* Monet-palette score colors: rose madder → golden ochre → Giverny green */
 function getScoreHex(score: number): string {
-  if (score < 50) return '#ef4444';
-  if (score < 70) return '#eab308';
-  return '#22c55e';
+  if (score < 50) return '#c06070';
+  if (score < 70) return '#c49a40';
+  return '#6a9e6a';
 }
 
 const LABELS: Record<string, string> = {
