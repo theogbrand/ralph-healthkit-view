@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ralph - Apple Health Dashboard",
-  description: "Local-first fitness dashboard for Apple Health data",
+  title: "Ralph — Apple Health Dashboard",
+  description: "Local-first fitness dashboard for Apple Health data — styled in the spirit of Claude Monet",
 };
 
 export default function RootLayout({
@@ -26,6 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{ fontFamily: "var(--font-geist-sans), 'Georgia', 'Times New Roman', serif" }}
       >
         {children}
       </body>

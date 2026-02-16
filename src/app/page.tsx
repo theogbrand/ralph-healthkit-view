@@ -85,12 +85,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b" style={{ borderImage: 'linear-gradient(to right, oklch(0.58 0.14 250 / 30%), oklch(0.65 0.11 300 / 40%), oklch(0.6 0.1 155 / 30%)) 1' }}>
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Ralph</h1>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>Ralph</h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>Health &middot; Impressions</p>
+            </div>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 rounded-full border border-[oklch(0.75_0.08_270)] bg-[oklch(0.94_0.025_290)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[oklch(0.42_0.12_270)]">
                 <span aria-hidden>●</span>
                 Preview
               </span>
