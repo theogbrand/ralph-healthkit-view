@@ -47,15 +47,15 @@ export function formatPace(minutesPerKm: number): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score < 50) return 'text-red-500';
-  if (score < 70) return 'text-yellow-500';
-  return 'text-green-500';
+  if (score < 50) return 'text-red-400';
+  if (score < 70) return 'text-amber-400';
+  return 'text-emerald-400';
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score < 50) return 'bg-red-500';
-  if (score < 70) return 'bg-yellow-500';
-  return 'bg-green-500';
+  if (score < 50) return 'bg-red-400';
+  if (score < 70) return 'bg-amber-400';
+  return 'bg-emerald-400';
 }
 
 export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): string {
@@ -68,8 +68,8 @@ export function getTrendIcon(trend: 'improving' | 'stable' | 'declining'): strin
 
 export function getTrendColor(trend: 'improving' | 'stable' | 'declining'): string {
   switch (trend) {
-    case 'improving': return 'text-green-500';
-    case 'stable': return 'text-gray-500';
-    case 'declining': return 'text-red-500';
+    case 'improving': return 'text-emerald-400';
+    case 'stable': return 'text-white/50';
+    case 'declining': return 'text-red-400';
   }
 }

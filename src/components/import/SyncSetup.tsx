@@ -51,7 +51,7 @@ export function SyncSetup({ onCheckNow }: SyncSetupProps) {
   if (loading) {
     return (
       <Card>
-        <CardContent className="py-6 text-center text-sm text-muted-foreground">
+        <CardContent className="py-6 text-center text-sm text-white/60">
           Loading sync status...
         </CardContent>
       </Card>
@@ -68,7 +68,7 @@ export function SyncSetup({ onCheckNow }: SyncSetupProps) {
       <CardContent className="space-y-4">
         {/* Last Sync */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Last Import</span>
+          <span className="text-sm text-white/60">Last Import</span>
           <span className="text-sm font-medium">
             {status?.last_sync ? timeAgo(status.last_sync) : 'Never'}
           </span>
@@ -78,20 +78,20 @@ export function SyncSetup({ onCheckNow }: SyncSetupProps) {
         {hasData && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Records</span>
+              <span className="text-sm text-white/60">Records</span>
               <span className="text-sm font-medium">
                 {status.total_records.toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Workouts</span>
+              <span className="text-sm text-white/60">Workouts</span>
               <span className="text-sm font-medium">
                 {status.total_workouts.toLocaleString()}
               </span>
             </div>
             {status.date_range && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Date Range</span>
+                <span className="text-sm text-white/60">Date Range</span>
                 <span className="text-sm font-medium">
                   {new Date(status.date_range.start).toLocaleDateString()} –{' '}
                   {new Date(status.date_range.end).toLocaleDateString()}

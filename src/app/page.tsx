@@ -84,13 +84,13 @@ export default function Home() {
   const hasData = data && (data.overall_score !== null || data.total_records > 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-screen relative z-10">
+      <header className="bg-white/[0.08] backdrop-blur-[20px] border-b border-white/12 shadow-[0_8px_32px_rgba(0,0,0,0.25)]">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Ralph</h1>
+            <h1 className="text-2xl font-bold text-white">Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
                 <span aria-hidden>●</span>
                 Preview
               </span>
@@ -108,12 +108,12 @@ export default function Home() {
               </Button>
             )}
             {isPreviewMode && (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-white/40">
                 Preview dataset
               </span>
             )}
             {!isPreviewMode && data?.last_sync && (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-white/40">
                 Last sync: {timeAgo(data.last_sync)}
               </span>
             )}
@@ -143,7 +143,7 @@ export default function Home() {
           <div className="space-y-6">
             <Card>
               <CardContent className="flex items-center justify-center py-16">
-                <div className="text-muted-foreground">Loading dashboard...</div>
+                <div className="text-white/50">Loading dashboard...</div>
               </CardContent>
             </Card>
           </div>
@@ -154,7 +154,7 @@ export default function Home() {
           <Card>
             <CardContent className="flex items-center justify-center py-16">
               <div className="text-center">
-                <p className="text-muted-foreground">{error}</p>
+                <p className="text-white/80">{error}</p>
                 <Button className="mt-4" variant="outline" onClick={() => fetchData(range)}>
                   Retry
                 </Button>
@@ -167,7 +167,7 @@ export default function Home() {
         {!loading && !error && !hasData && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-white/80">
                 No data yet. Import your Apple Health data to get started.
               </p>
               <Link href="/import">
@@ -186,7 +186,7 @@ export default function Home() {
             <section className="mt-8">
               <Card>
                 <CardContent className="flex items-center justify-between py-4">
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-white/60">
                     {isPreviewMode
                       ? 'Preview dataset'
                       : `Last sync: ${data.last_sync ? timeAgo(data.last_sync) : 'Never'}`}
