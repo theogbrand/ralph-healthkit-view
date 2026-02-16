@@ -32,22 +32,19 @@ export function Overview({ data, dateRange }: OverviewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Fitness Score */}
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>Overall Fitness Score</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <FitnessScore score={data.overall_score} trend={data.overall_trend} />
-          </CardContent>
-        </Card>
+      {/* Fitness Score — floats on page bg, no card wrapper */}
+      <section className="flex flex-col items-center py-4">
+        <h2 className="mb-4 text-sm font-semibold text-[1.25rem] tracking-tight">
+          Overall Fitness Score
+        </h2>
+        <FitnessScore score={data.overall_score} trend={data.overall_trend} />
       </section>
 
       {/* Category Cards — click to expand details */}
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {CATEGORY_CONFIG.map(({ key }) => {
           const cat = data.categories[key];
+          const isExpanded = expanded === key;
           return (
             <button
               key={key}
@@ -61,6 +58,9 @@ export function Overview({ data, dateRange }: OverviewProps) {
                 trend={cat.trend}
                 sparklineData={cat.metrics[0]?.sparkline_data}
               />
+              {isExpanded && (
+                <div className="mt-1 h-0.5 rounded-full bg-foreground/10" />
+              )}
             </button>
           );
         })}
@@ -84,7 +84,9 @@ export function Overview({ data, dateRange }: OverviewProps) {
       <section>
         <Card>
           <CardHeader>
-            <CardTitle>Category Breakdown</CardTitle>
+            <CardTitle className="text-[1.25rem] font-semibold tracking-tight">
+              Category Breakdown
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ProgressChart categories={data.categories} />
@@ -97,10 +99,12 @@ export function Overview({ data, dateRange }: OverviewProps) {
         <section>
           <Card>
             <CardHeader>
-              <CardTitle>Score Trend</CardTitle>
+              <CardTitle className="text-[1.25rem] font-semibold tracking-tight">
+                Score Trend
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <TrendChart data={data.score_history} dateRange={dateRange} color="#3b82f6" />
+              <TrendChart data={data.score_history} dateRange={dateRange} color="var(--chart-blue)" />
             </CardContent>
           </Card>
         </section>

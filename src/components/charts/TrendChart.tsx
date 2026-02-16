@@ -3,13 +3,9 @@
 import {
   ResponsiveContainer,
   AreaChart,
-  LineChart,
   Area,
-  Line,
   XAxis,
-  YAxis,
   Tooltip,
-  CartesianGrid,
 } from 'recharts';
 import type { DateRange } from '@/types/analytics';
 
@@ -28,56 +24,54 @@ function formatDateTick(dateStr: string): string {
 export function TrendChart({
   data,
   dateRange,
-  color = '#3b82f6',
-  showArea = true,
+  color = 'var(--chart-blue)',
 }: TrendChartProps) {
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+      <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
         No trend data available
       </div>
     );
   }
 
-  // Show fewer ticks for shorter ranges
   const tickInterval = dateRange === '30d' ? 6 : dateRange === '60d' ? 13 : dateRange === '90d' ? 14 : 30;
 
-  const Chart = showArea ? AreaChart : LineChart;
-
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <Chart data={data}>
-        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+    <ResponsiveContainer width="100%" height={200}>
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.2} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
         <XAxis
           dataKey="date"
           tickFormatter={formatDateTick}
           interval={tickInterval}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+          axisLine={false}
+          tickLine={false}
         />
-        <YAxis tick={{ fontSize: 12 }} width={40} />
         <Tooltip
           labelFormatter={(label) => formatDateTick(String(label))}
           formatter={(value) => [Number(value).toFixed(1), 'Value']}
+          contentStyle={{
+            borderRadius: '12px',
+            border: 'none',
+            boxShadow: '0 2px 8px oklch(0 0 0 / 0.08)',
+            fontSize: '13px',
+          }}
         />
-        {showArea ? (
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={color}
-            fill={color}
-            fillOpacity={0.15}
-            strokeWidth={2}
-          />
-        ) : (
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke={color}
-            strokeWidth={2}
-            dot={false}
-          />
-        )}
-      </Chart>
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke={color}
+          strokeWidth={2}
+          fill="url(#trendGrad)"
+          dot={false}
+        />
+      </AreaChart>
     </ResponsiveContainer>
   );
 }

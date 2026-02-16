@@ -15,19 +15,24 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
     ? higherIsBetter ? deltaPercent > 0 : deltaPercent < 0
     : null;
 
-  const deltaColor = isImproving === null
-    ? 'text-muted-foreground'
-    : isImproving ? 'text-green-500' : 'text-red-500';
-
-  const arrow = deltaPercent != null
-    ? (deltaPercent > 0 ? '↑' : deltaPercent < 0 ? '↓' : '→')
+  const chevron = deltaPercent != null
+    ? (deltaPercent > 0 ? '▲' : deltaPercent < 0 ? '▼' : '●')
     : '';
+
+  // Color and badge styles
+  const badgeStyle = isImproving === null
+    ? { color: 'var(--muted-foreground)', bg: 'var(--muted)' }
+    : isImproving
+      ? { color: 'var(--ring-exercise)', bg: 'oklch(0.72 0.22 145 / 0.1)' }
+      : { color: 'var(--ring-move)', bg: 'oklch(0.65 0.27 12 / 0.1)' };
 
   return (
     <Card>
       <CardHeader className="pb-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
+        <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </CardTitle>
+        <p className="text-2xl font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
           {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
         </p>
       </CardHeader>
@@ -36,8 +41,16 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
           Last week: {lastWeek != null ? formatMetricValue(lastWeek, unit) : '--'}
         </span>
         {deltaPercent != null && (
-          <span className={`text-sm font-semibold ${deltaColor}`}>
-            {arrow} {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+            style={{
+              color: badgeStyle.color,
+              backgroundColor: badgeStyle.bg,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            <span className="text-[9px]">{chevron}</span>
+            {deltaPercent > 0 ? '+' : ''}{deltaPercent}%
           </span>
         )}
       </CardContent>
