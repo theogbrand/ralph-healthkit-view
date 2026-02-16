@@ -17,7 +17,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
 
   const deltaColor = isImproving === null
     ? 'text-muted-foreground'
-    : isImproving ? 'text-green-500' : 'text-red-500';
+    : isImproving ? 'text-monet-sage' : 'text-monet-rose';
 
   const arrow = deltaPercent != null
     ? (deltaPercent > 0 ? '↑' : deltaPercent < 0 ? '↓' : '→')
