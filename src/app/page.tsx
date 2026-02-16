@@ -22,6 +22,26 @@ const RANGES: { value: DateRange; label: string }[] = [
   { value: '365d', label: '1Y' },
 ];
 
+async function parseAnalyticsResponse(res: Response): Promise<ApiResponse> {
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text) as ApiResponse;
+  } catch (error) {
+    const originalError = error;
+    // Some hosting proxies can append a chunk terminator (`0`) after JSON.
+    const match = text.match(/^([\s\S]*[}\]])\r?\n0\r?\n?\s*$/);
+    if (match) {
+      try {
+        return JSON.parse(match[1]) as ApiResponse;
+      } catch {
+        throw originalError;
+      }
+    }
+    throw originalError;
+  }
+}
+
 export default function Home() {
   const [range, setRange] = useState<DateRange>('90d');
   const [apiData, setApiData] = useState<ApiResponse | null>(null);
@@ -35,7 +55,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/analytics?range=${r}`);
       if (!res.ok) throw new Error('Failed to fetch analytics');
-      const json: ApiResponse = await res.json();
+      const json = await parseAnalyticsResponse(res);
       setApiData(json);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');

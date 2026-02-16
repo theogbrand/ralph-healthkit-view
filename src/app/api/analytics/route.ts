@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import type { DashboardData, DateRange } from '@/types/analytics';
 import { getDateRangeBounds } from '@/lib/utils/date-helpers';
 import { computeFitnessScoresForRange, computeScoreForWindow } from '@/lib/analytics/fitness-score';
@@ -9,7 +9,20 @@ export const runtime = 'nodejs';
 
 const VALID_RANGES = new Set<DateRange>(['30d', '60d', '90d', '365d']);
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+function jsonResponse(body: unknown, init?: ResponseInit): Response {
+  const text = JSON.stringify(body);
+  const headers = new Headers(init?.headers);
+  headers.set('content-type', 'application/json; charset=utf-8');
+  headers.set('content-length', Buffer.byteLength(text, 'utf8').toString());
+  headers.set('cache-control', 'no-store');
+
+  return new Response(text, {
+    ...init,
+    headers,
+  });
+}
+
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
     const rangeParam = searchParams.get('range') ?? '90d';
@@ -74,9 +87,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         value: s.overall_score!,
       }));
 
-    return NextResponse.json({ ...data, score_history, total_records: sync.total_records });
+    return jsonResponse({ ...data, score_history, total_records: sync.total_records });
   } catch (error) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
