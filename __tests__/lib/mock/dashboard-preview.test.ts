@@ -13,6 +13,13 @@ const EXPECTED_HISTORY_LENGTH: Record<DateRange, number> = {
   '365d': 365,
 };
 
+function formatLocalISO(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 describe('dashboard preview mock data', () => {
   it('returns valid mock shape for every range', () => {
     for (const range of RANGES) {
@@ -45,6 +52,14 @@ describe('dashboard preview mock data', () => {
 
     expect(allMetrics.length).toBeGreaterThan(0);
     expect(allMetrics.every((metric) => metric.sparkline_data.length > 0)).toBe(true);
+  });
+
+  it('ends score history on today in local calendar date', () => {
+    const data = getMockDashboardData('30d');
+    const lastPoint = data.score_history.at(-1);
+
+    expect(lastPoint).toBeDefined();
+    expect(lastPoint?.date).toBe(formatLocalISO(new Date()));
   });
 });
 
