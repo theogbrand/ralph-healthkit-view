@@ -4,7 +4,7 @@
 **Date**: 2026-02-16
 **Research**: dawn-docs/active/research/2026-02-16-TEST-AGI-1-ralph-healthkit-glassmorphism.md
 **Specification**: dawn-docs/active/specifications/2026-02-16-TEST-AGI-1-ralph-healthkit-glassmorphism.md
-**Status**: Ready for Implementation
+**Status**: Implementation Complete
 
 ## Overview
 
@@ -20,17 +20,17 @@ Transform the Ralph HealthKit fitness dashboard from its current flat, opaque sh
 
 ## Success Criteria
 
-- [ ] All cards, headers, tabs, buttons, and containers use the glass card system — no flat/opaque holdovers
-- [ ] Dark gradient background with accent blobs visible behind glass elements
-- [ ] Text meets minimum 4.5:1 contrast ratio on glass surfaces
-- [ ] Charts render with updated color palette, visible against glass backgrounds
-- [ ] Hover effects on cards (lift + border brighten) and buttons (opacity change) work smoothly
-- [ ] Import page and file upload match dashboard glass aesthetic
-- [ ] Loading, empty, and error states styled with glass cards
-- [ ] No perceptible jank on scroll or hover
-- [ ] Dev server runs and displays the glassmorphism design: `npm run dev`
-- [ ] All existing tests pass: `npm run test`
-- [ ] Type check passes: `npm run typecheck`
+- [x] All cards, headers, tabs, buttons, and containers use the glass card system — no flat/opaque holdovers
+- [x] Dark gradient background with accent blobs visible behind glass elements
+- [x] Text meets minimum 4.5:1 contrast ratio on glass surfaces
+- [x] Charts render with updated color palette, visible against glass backgrounds
+- [x] Hover effects on cards (lift + border brighten) and buttons (opacity change) work smoothly
+- [x] Import page and file upload match dashboard glass aesthetic
+- [x] Loading, empty, and error states styled with glass cards
+- [x] No perceptible jank on scroll or hover
+- [x] Dev server runs and displays the glassmorphism design: `npm run dev`
+- [x] All existing tests pass: `npm run test`
+- [x] Type check passes: `npm run typecheck`
 
 ## Phases
 
