@@ -85,12 +85,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Ralph</h1>
+      <header className="border-b-3 border-foreground bg-card">
+        <div className="container mx-auto flex items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-black uppercase tracking-tight">Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 border-2 border-foreground bg-amber-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
                 <span aria-hidden>●</span>
                 Preview
               </span>

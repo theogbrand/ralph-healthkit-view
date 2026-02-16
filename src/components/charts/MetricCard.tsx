@@ -21,10 +21,10 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-black">
               {value !== null ? formatMetricValue(value, unit) : '--'}
             </p>
-            <p className={`mt-1 text-sm font-medium ${getTrendColor(trend)}`}>
+            <p className={`mt-1 text-sm font-bold uppercase ${getTrendColor(trend)}`}>
               {getTrendIcon(trend)} {trend}
             </p>
           </div>
@@ -35,8 +35,8 @@ export function MetricCard({ title, value, unit, trend, sparklineData }: MetricC
                   <Line
                     type="monotone"
                     dataKey="v"
-                    stroke="#6b7280"
-                    strokeWidth={1.5}
+                    stroke="#1a1a1a"
+                    strokeWidth={2.5}
                     dot={false}
                   />
                 </LineChart>

@@ -27,7 +27,7 @@ export function ComparisonCard({ metric }: ComparisonCardProps) {
     <Card>
       <CardHeader className="pb-1">
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <p className="text-2xl font-bold">
+        <p className="text-2xl font-black">
           {thisWeek != null ? formatMetricValue(thisWeek, unit) : '--'}
         </p>
       </CardHeader>
