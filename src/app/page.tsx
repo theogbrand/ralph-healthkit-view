@@ -29,12 +29,17 @@ async function parseAnalyticsResponse(res: Response): Promise<ApiResponse> {
   try {
     return JSON.parse(text) as ApiResponse;
   } catch (error) {
+    const originalError = error;
     // Some hosting proxies can append a chunk terminator (`0`) after JSON.
     const match = text.match(/^([\s\S]*[}\]])\r?\n0\r?\n?\s*$/);
     if (match) {
-      return JSON.parse(match[1]) as ApiResponse;
+      try {
+        return JSON.parse(match[1]) as ApiResponse;
+      } catch {
+        throw originalError;
+      }
     }
-    throw error;
+    throw originalError;
   }
 }
 
