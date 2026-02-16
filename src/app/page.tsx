@@ -90,7 +90,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <h1 className="font-serif text-3xl font-semibold italic tracking-wide text-primary">Ralph</h1>
             {isPreviewMode && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+              <span className="inline-flex items-center gap-1 rounded-full border border-monet-wisteria/40 bg-monet-wisteria/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-monet-wisteria">
                 <span aria-hidden>●</span>
                 Preview
               </span>
