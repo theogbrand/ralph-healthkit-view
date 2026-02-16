@@ -54,6 +54,28 @@ describe('dashboard preview mock data', () => {
     expect(allMetrics.every((metric) => metric.sparkline_data.length > 0)).toBe(true);
   });
 
+  it('uses visibly distinct scenarios for each range', () => {
+    const byRange = Object.fromEntries(
+      RANGES.map((range) => [range, getMockDashboardData(range)])
+    ) as Record<DateRange, ReturnType<typeof getMockDashboardData>>;
+
+    expect(byRange['30d'].overall_score).not.toBe(byRange['60d'].overall_score);
+    expect(byRange['60d'].overall_score).not.toBe(byRange['90d'].overall_score);
+    expect(byRange['90d'].overall_score).not.toBe(byRange['365d'].overall_score);
+
+    expect(byRange['30d'].overall_trend).toBe('improving');
+    expect(byRange['60d'].overall_trend).toBe('stable');
+    expect(byRange['90d'].overall_trend).toBe('declining');
+
+    const thirtyDayLast = byRange['30d'].score_history.at(-1)?.value ?? 0;
+    const thirtyDayFirst = byRange['30d'].score_history[0]?.value ?? 0;
+    const ninetyDayLast = byRange['90d'].score_history.at(-1)?.value ?? 0;
+    const ninetyDayFirst = byRange['90d'].score_history[0]?.value ?? 0;
+
+    expect(thirtyDayLast).toBeGreaterThan(thirtyDayFirst);
+    expect(ninetyDayLast).toBeLessThan(ninetyDayFirst);
+  });
+
   it('ends score history on today in local calendar date', () => {
     const data = getMockDashboardData('30d');
     const lastPoint = data.score_history.at(-1);
