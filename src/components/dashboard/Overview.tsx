@@ -32,16 +32,9 @@ export function Overview({ data, dateRange }: OverviewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Fitness Score */}
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>Overall Fitness Score</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <FitnessScore score={data.overall_score} trend={data.overall_trend} />
-          </CardContent>
-        </Card>
+      {/* Fitness Score — standalone ring */}
+      <section className="flex flex-col items-center py-4">
+        <FitnessScore score={data.overall_score} trend={data.overall_trend} />
       </section>
 
       {/* Category Cards — click to expand details */}
